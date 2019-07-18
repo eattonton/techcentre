@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>舟山中远报验系统-焊工信息</title>
+    <link rel="stylesheet" href='./bootstrap.min.css'/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes"/>
+    <script src="jquery.js"></script>
+</head>
+<style>
+    * {
+        margin: 0px;
+        padding: 0px;
+    }
+
+    body {
+        width: 100%;
+        height: 100%;
+    }
+
+    .container label {
+        display: block;
+        text-align: right
+    }
+
+    .form-group {
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        height: 25px;
+    }
+
+    .container {
+        padding: 3px;
+    }
+
+    #navcontainer li {
+        padding: 5px;
+        display: inline-block;
+        border-right: 1px solid beige;
+        width: 100px;
+        text-align: center;
+    }
+
+    #navcontainer {
+        background: #D6E9C6;
+    }
+
+    .active {
+        background: lightblue;
+    }
+    .item_label{
+        padding-right: 0px !important;
+        padding-left: 0px !important;
+        font-size: 12px;
+    }
+    .item_label:after{
+        content: ":";
+    }
+</style>
+
+<body>
+<div id='navcontainer' style="border-bottom:1px solid lightgrey">
+</div>
+<div class="container tab-content">
+
+</div>
+<div class="infomation tab-pane">
+    <form class="container form-horizontal">
+        <div class="form-group" style="position: absolute;right: 50px;top: 40px;">
+            <img type="text" style="width: 100px;height: 90px;" name="照片地址" src="" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for='姓名' class="col-xs-3 control-label item_label">姓名</label>
+            <div class="col-xs-5">
+                <input type="text" name="姓名" class="form-control"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for='身份证' class="col-xs-3 control-label item_label">身份证</label>
+            <div class="col-xs-5">
+                <input type="text" name="身份证" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='性别' class="col-xs-3 control-label item_label">性别</label>
+            <div class="col-xs-5">
+                <input type="text" name="性别" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='船级社' class="col-xs-3 control-label item_label">船级社</label>
+            <div class="col-xs-8">
+                <input type="text" name="船级社" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='工区' class="col-xs-3 control-label item_label">所属工区</label>
+            <div class="col-xs-8">
+                <input type="text" name="工区" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='施工队' class="col-xs-3 control-label item_label">施工队</label>
+            <div class="col-xs-8">
+                <input type="text" name="施工队" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='焊接方法1' class="col-xs-3 control-label item_label">焊接方法</label>
+            <div class="col-xs-8">
+                <input type="text" name="焊接方法1" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='合格位置' class="col-xs-3 control-label item_label">合格位置</label>
+            <div class="col-xs-8">
+                <input type="text" name="合格位置" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='可焊位置' class="col-xs-3 control-label item_label">认可位置</label>
+            <div class="col-xs-8">
+                <input type="text" name="可焊位置" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='板厚' class="col-xs-3 control-label item_label">可焊板厚</label>
+            <div class="col-xs-8">
+                <input type="text" name="板厚" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='管厚' class="col-xs-3 control-label item_label">可焊管厚</label>
+            <div class="col-xs-8">
+                <input type="text" name="管厚" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='管径' class="col-xs-3 control-label item_label">可焊管径</label>
+            <div class="col-xs-8">
+                <input type="text" name="管径" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='母材性质' class="col-xs-3 control-label item_label">母材性质</label>
+            <div class="col-xs-8">
+                <input type="text" name="母材性质" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='焊工编号' class="col-xs-3 control-label item_label">焊工代用证号</label>
+            <div class="col-xs-8">
+                <input type="text" name="焊工编号" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='船级社证书号' class="col-xs-3 control-label item_label">船级社证书号</label>
+            <div class="col-xs-8">
+                <input type="text" name="船级社证书号" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='代用证日期' class="col-xs-3 control-label item_label">发证日期</label>
+            <div class="col-xs-8">
+                <input type="text" name="代用证日期" class="form-control"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for='代用证到期' class="col-xs-3 control-label item_label">到期日期</label>
+            <div class="col-xs-8">
+                <input type="text" name="代用证到期" class="form-control"/>
+            </div>
+        </div>
+
+    </form>
+</div>
+</body>
+<script type="text/javascript">
+    $(function () {
+        var map = {};
+        //复制隐藏的数据
+        function appendDiv(className) {
+            var div = $(".infomation");
+            var user = map[className];
+            for (var key in user) {
+                var str = "input[name='" + key + "']";
+                var value = user[key];
+                if (key !== "照片地址") {
+                    div.find(str).val(value);
+                } else {
+                    var str = "img[name='" + key + "']";
+                    $(str).attr("src", value.substr(8, value.length));
+                }
+            }
+        }
+
+        //创建每种类型的数据
+        function appendOneUser(user) {
+            var str = "<li><a href='#" + user["船级社"] + "' data-toggle='tab'/>" + user["船级社"] + "</li>";
+            $("#navcontainer").append(str);
+        }
+
+        //创建数据
+        function test(data) {
+            data = data || [{
+                    船级社: "CCS",
+                    姓名: "张三",
+                    身份证: 510922198809285210,
+                    照片地址: "123"
+                }, {
+                    船级社: "ABS",
+                    姓名: "李四",
+                    身份证: ""
+                }];
+            data.forEach(function (user) {
+                map[user["船级社"]] = user;
+            });
+            data.forEach(appendOneUser);
+
+            $("#navcontainer").find("li").click(function () {
+                var cell = $(this).text();
+                $("#navcontainer li").removeClass("active");
+                $(this).addClass("active");
+                appendDiv(cell);
+            });
+
+            $("#navcontainer").find("li").eq(0).addClass("active");
+            appendDiv(data[0]["船级社"]);
+        }
+
+        function getQueryString() {
+            var qs = location.search.substr(1), // 获取url中"?"符后的字串
+                args = {}, // 保存参数数据的对象
+                items = qs.length ? qs.split("&") : [], // 取得每一个参数项,
+                item = null,
+                len = items.length;
+
+            for (var i = 0; i < len; i++) {
+                item = items[i].split("=");
+                var name = decodeURIComponent(item[0]),
+                    value = decodeURIComponent(item[1]);
+                if (name) {
+                    args[name] = value;
+                }
+            }
+            return args;
+        }
+
+        $.ajax({
+            url: "/weldUserInfo/getUserInfo",
+            type: "post",
+            data: getQueryString(),
+            success: function (res) {
+                if (!res.state) {
+                    alert(res.data);
+                }
+                res.data.sort(function (one, two) {
+                    return one["船级社"] > two["船级社"] ? 1 : -1;
+                });
+                //过滤掉重复的数据
+                var onlyOne = [];
+                var tData = res.data.filter(function (cell) {
+                    var notHas = onlyOne.indexOf(cell['船级社']) === -1;
+                    if (notHas) {
+                        onlyOne.push(cell["船级社"]);
+                    }
+                    return notHas;
+                });
+                test(tData);
+            },
+            error: function () {
+                console.log("获取数据失败");
+            }
+        });
+    })
+</script>
+
+</html>

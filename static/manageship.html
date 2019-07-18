@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>舟山中远海运重工--质量管理--船号管理</title>
+    <link rel="stylesheet" type="text/css" href="js/easyui-1.5.3/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="js/easyui-1.5.3/themes/icon.css">
+    <script type="text/javascript" src="js/easyui-1.5.3/jquery.min.js"></script>
+    <script type="text/javascript" src="js/easyui-1.5.3/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="quality/config.js"></script>
+    <style type="text/css">
+        .dialog-row {
+            padding: 5px;
+            align-items: baseline;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div id="tb">
+    <a href='#' class="easyui-linkbutton" onclick="btnLoad()">刷新</a>
+    <a href='#' class="easyui-linkbutton" onclick="btnAdd()">添加</a>
+    <a href='#' class="easyui-linkbutton" onclick="btnEdit()">编辑</a>
+    <a href='#' class="easyui-linkbutton" onclick="btnRemove()">删除</a>
+</div>
+<div>
+    <div id="dbGrid"></div>
+</div>
+
+<div id="dlg" class="easyui-dialog" title="编辑对话框" style="width:400px;height:400px;padding:0px"
+     data-options="iconCls:'icon-edit',
+                     resizable:true,
+                    modal:true,
+                    closed:true,
+                    buttons: '#dlg-buttons'">
+    <div class="dialog-row">
+        <input class="easyui-textbox" id="shipno" style="width:95%" data-options="label:'船号:'">
+    </div>
+    <div class="dialog-row">
+        <input class="easyui-textbox" id="projectno" style="width:95%" data-options="label:'工程号:'">
+    </div>
+    <div class="dialog-row">
+        <input class="easyui-textbox" id="shipname" style="width:95%" data-options="label:'项目:'">
+    </div>
+    <div class="dialog-row">
+        <input class="easyui-textbox" id="shipdesc" style="width:95%" data-options="label:'描述:'">
+    </div>
+    <div class="dialog-row">
+        <input class="easyui-textbox" id="shipowner" style="width:95%" data-options="label:'船东:'">
+    </div>
+    <div class="dialog-row">
+        <input class="easyui-textbox" id="classify" style="width:95%" data-options="label:'船级:'">
+    </div>
+    <div class="dialog-row">
+        <input id="delivery" style="width:95%"/>
+    </div>
+    <div class="dialog-row">
+        <span>复检是否连号:</span>&nbsp;&nbsp;<input id="flagReCheck" class="easyui-switchbutton">
+    </div>
+</div>
+<div id="dlg-buttons">
+    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="btnEditOk()">&nbsp;Save&nbsp;</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="javascript:$('#dlg').dialog('close')">Close</a>
+</div>
+</body>
+<script type="text/javascript">
+    var User = {}
+    var flagBtn = 0   //按钮的标识
+    var configParam = {}
+    //初始化
+    $(function () {
+        //检测用户
+        config.userCheck(function (user) {
+            User = user
+        })
+
+        //表格参数设置
+        $('#dbGrid').datagrid({
+            width: 700,
+            url: '/ship/get',
+            method: 'GET',
+            striped: true,
+            fitColumns: true,
+            singleSelect: true,
+            rownumbers: true,
+            nowrap: false,
+            toolbar: "#tb",
+            columns: [[
+                {field: 'ck', checkbox: true},
+                {
+                    field: '船号', title: '船号', width: 20, align: 'center'
+                },
+                {
+                    field: '工程号', title: '工程号', width: 30, align: 'center'
+                },
+                {
+                    field: '船名', title: '项目', width: 40, align: 'center'
+                },
+                {
+                    field: '描述', title: '描述', width: 40, align: 'center'
+                },
+                {
+                    field: '船东', title: '船东', width: 30, align: 'center'
+                },
+                {
+                    field: '船级', title: '船级', width: 30, align: 'center'
+                },
+                {
+                    field: '复检连号', title: '复检连号', width: 30, align: 'center'
+                },
+                {
+                    field: '已交付', title: '已交付', width: 30, align: 'center',
+                    formatter: function (value, row, index) {
+                        if (value == "1") {
+                            return "是";
+                        }
+                        return "否";
+                    }
+                },
+            ]]
+        });
+        $('#delivery').combobox({
+            data: [{"值": 1, "描述": "是"}, {"值": 0, "描述": "否"}],
+            valueField: '值',
+            textField: '描述',
+            label: '已交付:'
+        });
+    })
+
+    //刷新
+    function btnLoad() {
+        var rows = $("#dbGrid").datagrid("getRows");
+        $('#dbGrid').datagrid("options").url = '/ship/get',
+            $('#dbGrid').datagrid('load');
+    }
+    //编辑现有的行
+    function btnEdit() {
+        var row = $('#dbGrid').datagrid('getSelected');
+        //console.log(row)
+        $("#shipno").textbox("setValue", row.船号);
+        $("#projectno").textbox("setValue", row.工程号);
+        $("#shipname").textbox("setValue", row.船名);
+        $("#shipdesc").textbox("setValue", row.描述);
+        $("#shipowner").textbox("setValue", row.船东);
+        $("#classify").textbox("setValue", row.船级);
+        $("#delivery").textbox("setValue", row.已交付 == '1' ? "是" : "否");
+
+        if (row.复检连号 == "*") {
+            $("#flagReCheck").switchbutton('check');
+        } else {
+            $("#flagReCheck").switchbutton('uncheck');
+        }
+        flagBtn = 2;
+        $('#dlg').dialog({title: "编辑"})
+        $('#dlg').dialog('open')
+    }
+    //添加新的行
+    function btnEditOk() {
+        var newObj = {};
+        newObj.船号 = $("#shipno").textbox("getValue");
+        newObj.工程号 = $("#projectno").textbox("getValue");
+        newObj.船名 = $("#shipname").textbox("getValue");
+        newObj.描述 = $("#shipdesc").textbox("getValue");
+        newObj.船东 = $("#shipowner").textbox("getValue");
+        newObj.船级 = $("#classify").textbox("getValue");
+        newObj.已交付 = $("#delivery").textbox("getValue");
+
+        if ($("#flagReCheck").switchbutton("options").checked) {
+            newObj["复检连号"] = '*'
+        }
+        if (flagBtn == 2) {
+            //更新行
+            var selRow = $('#dbGrid').datagrid('getSelected');
+            var selidx = $('#dbGrid').datagrid('getRowIndex', selRow);
+            //更新
+            var sparam = {data: JSON.stringify(newObj)};
+            //更新
+            doOnWeb('/ship/update', sparam, function (res) {
+                if (parseInt(res) === 0) {
+                    config.alert("保存失败")
+                } else {
+                    $("#dbGrid").datagrid("updateRow", {
+                        index: selidx, //行索引
+                        row: {
+                            船号: res.船号,
+                            工程号: res.工程号,
+                            船名: res.船名,
+                            描述: res.描述,
+                            船东: res.船东,
+                            船级: res.船级,
+                            复检连号: res.复检连号,
+                            已交付: res.已交付,
+                        }
+                    });
+                    config.show("更新数据成功");
+                }
+            })
+        } else if (flagBtn == 1) {
+            var sparam = {data: JSON.stringify(newObj)}
+            //添加
+            doOnWeb('/ship/insert', sparam, function (res) {
+                if (parseInt(res) === 0) {
+                    config.alert("保存失败");
+                } else {
+                    //更新行
+                    $("#dbGrid").datagrid("appendRow", res);
+                    config.show("新增数据成功");
+                }
+            })
+        }
+
+        //关闭对话框
+        $('#dlg').dialog('close')
+    }
+
+    //添加
+    function btnAdd() {
+        //打开对话框
+        flagBtn = 1
+        $('#dlg').dialog({title: "新加"});
+        $('#dlg').dialog('open');
+    }
+    //删除
+    function btnRemove() {
+        $.messager.confirm('提示框', '你确定要删除吗?', function () {
+            var rows = $('#dbGrid').datagrid('getChecked')
+            for (var i = 0, len = rows.length; i < len; i++) {
+                var selRow = rows[i]
+                var selIdx = $('#dbGrid').datagrid('getRowIndex', selRow);
+                //删除用对象
+                var newObj = {}
+                newObj['船号'] = selRow['船号']
+                //删除用参数
+                var sparam = {data: JSON.stringify(newObj)}
+                doOnWeb('/ship/del', sparam, function (res) {
+                    if (parseInt(res) == 0) {
+                        $('#dbGrid').datagrid('deleteRow', selIdx);
+                    }
+                })
+            }
+        })
+    }
+
+    //sparam对象 cb处理函数
+    function doOnWeb(surl, sparam, cb) {
+        $.ajax({
+            url: surl,
+            async: false,
+            data: sparam,
+            success: function (res, status) {
+                typeof cb == 'function' && cb(res)
+            },
+            //调用出错执行的函数
+            error: function () {
+                //请求出错处理
+                alert("出错")
+            }
+        })
+    }
+
+</script>
+</html>

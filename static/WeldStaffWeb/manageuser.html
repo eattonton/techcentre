@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>舟山中远海运重工--质量管理--焊工系统用户管理</title>
+    <link rel="stylesheet" type="text/css" href="js/easyui-1.5.3/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="js/easyui-1.5.3/themes/icon.css">
+    <script type="text/javascript" src="js/easyui-1.5.3/jquery.min.js"></script>
+    <script type="text/javascript" src="js/easyui-1.5.3/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="/WeldStaffWeb/weldstaff/config.js"></script>
+    <script type="text/javascript" src="/WeldStaffWeb/weldstaff/ajax.js"></script>
+    <style type="text/css">
+        .dialog-row{
+            padding: 5px;
+            align-items: baseline;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body> 
+   <div id="tb">
+        <a href='#' class="easyui-linkbutton" onclick="btnLoad()">刷新</a>
+        <a href='#' class="easyui-linkbutton" onclick="btnAdd()">添加</a>
+        <a href='#' class="easyui-linkbutton" onclick="btnEdit()">编辑</a>
+        <a href='#' class="easyui-linkbutton" onclick="btnRemove()">删除</a>
+
+    </div>
+    <div>
+        <div id="dbGrid"></div>
+    </div>
+   
+    <div id="dlg" class="easyui-dialog" title="编辑对话框"  style="width:400px;height:400px;padding:0px"
+        data-options="iconCls:'icon-edit',
+                     resizable:true,
+                    modal:true,
+                    closed:true,
+                    buttons: '#dlg-buttons'">
+        <div class="dialog-row">
+            <input class="easyui-textbox" id="workno" style="width:95%" data-options="label:'工号:'">
+        </div>
+        <div class="dialog-row">
+            <input class="easyui-textbox" id="name" style="width:95%" data-options="label:'名:'">
+        </div>
+        <div class="dialog-row">
+            <input class="easyui-textbox" id="name2" style="width:95%" data-options="label:'英文名:'">
+        </div>
+        <div class="dialog-row">
+            <div id="department" style="width:95%"></div>
+        </div>
+        <div class="dialog-row">
+            <div id="magor" style="width:95%"></div>
+        </div>
+        <div class="dialog-row">
+            <div id="magor2" style="width:95%"></div>
+        </div>
+        <div class="dialog-row">
+            <input class="easyui-textbox" id="password" style="width:95%" data-options="label:'密码:'">
+        </div>
+        <div class="dialog-row">
+            <input class="easyui-textbox" id="phones" style="width:95%" data-options="label:'手机号:'">
+        </div>
+        <div class="dialog-row">
+            <input class="easyui-textbox" id="projs" style="width:95%" data-options="label:'项目:'">
+        </div>
+    </div>
+    <div id="dlg-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="btnEditOk()">&nbsp;Save&nbsp;</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="javascript:$('#dlg').dialog('close')">Close</a>
+    </div>
+</body>
+<script type="text/javascript">
+    var model = {
+        run: function(call, url, param, callback) {
+            call(url, param, function(res) {
+                !res.state && $.messager.info("error", res.data);
+                res.state && callback && callback(res);
+            })
+        },
+        get: function(param, callback) {
+            model.run(AJAX.get, "/weldstaffuser/get", param, callback);
+        },
+        update:function(param, callback){
+            model.run(AJAX.post, "/weldstaffuser/update", param, callback);
+        },
+        insert:function(param, callback){
+            model.run(AJAX.post, "/weldstaffuser/insert", param, callback);
+        },
+        remove:function(param, callback){
+            model.run(AJAX.get, "/weldstaffuser/remove", param, callback);
+        }
+    }
+</script>
+<script type="text/javascript">
+    var User={}
+    var flagBtn = 0   //按钮的标识
+ 
+    //初始化
+    $(function() {
+        //检测用户
+        //config.userCheck(function(user){
+         //   User = user
+        //})
+        //加载初始化
+        initConfigParams()
+        //表格参数设置
+        $('#dbGrid').datagrid({
+            width:1000,
+            height:700,
+            method: 'GET',
+            striped: true,
+            fitColumns: true,
+            singleSelect: true,
+            rownumbers: true,
+            remoteSort:false,
+            nowrap: false,
+            toolbar : "#tb",
+            columns: [[ 
+                { field:'ck',checkbox:true },
+                { field: '工号', title: '工号', width: 20, align: 'center',sortable:true
+                },
+                { field: '名', title: '名', width: 30, align: 'center',sortable:true
+                },
+                { field: '英文名', title: '英文名', width: 50, align: 'center',sortable:true
+                },
+                { field: '部门', title: '部门', width: 40, align: 'center',sortable:true
+                },
+                 { field: '职务', title: '职务', width: 30, align: 'center',sortable:true
+                },
+                 { field: '专业', title: '专业', width: 30, align: 'center',sortable:true
+                },
+                { field: '密码', title: '密码', width: 50, align: 'center',
+                    formatter:function(value,row,index){
+                        return value||'123456'
+                    }
+                },
+                { field: '手机号', title: '手机号', width: 50, align: 'center'
+                },
+                { field: '项目', title: '项目', width: 100, align: 'center'
+                } 
+
+            ]] 
+        })
+
+        //初始化配置
+        function initConfigParams(){
+             //加载配置
+            var loadinit = function(data) {
+                var arr1 = $(data.责任工区).map(function () { return {v:this}}).get();
+                $('#department').combobox({
+                    data : arr1,
+                    textField:'v', 
+                    valueField:'v',
+                    label:'部门:',
+                    editable:false
+                });
+                var arr2 = $(data.职务).map(function () { return {v:this}}).get();
+                $('#magor').combobox({
+                    data : arr2,
+                    textField:'v', 
+                    valueField:'v',
+                    label:'职务:',
+                    editable:false
+                });
+                var arr22 = $(data.专业).map(function () { return {v:this}}).get();
+                $('#magor2').combobox({
+                    data : arr22,
+                    textField:'v', 
+                    valueField:'v',
+                    label:'专业:',
+                    editable:false
+                });
+               
+               //刷新 
+               btnLoad()
+            }
+            //window.parent.loadConfigParam(loadinit)
+            config.loadConfigParam(loadinit)
+        }
+    })
+ 
+    //刷新
+    function btnLoad(){
+        model.get({},function(res) {
+            if (res.state) {
+                $('#dbGrid').datagrid('loadData', res.data);
+            }
+        });
+    }
+    //编辑现有的行
+    function btnEdit(){
+        var row = $('#dbGrid').datagrid('getSelected')
+        //console.log(row)
+        $("#workno").textbox("setValue", row.工号)
+        $("#name").textbox("setValue", row.名)
+        $("#name2").textbox("setValue", row.英文名)
+        $("#department").combobox("setValue", row.部门)
+        $("#magor").combobox("setValue", row.职务)
+        $("#magor2").combobox("setValue", row.专业)
+        $("#password").textbox("setValue", row.密码||'123456')
+        $("#phones").textbox("setValue", row.手机号)
+        $("#projs").textbox("setValue", row.项目)
+        flagBtn = 2;
+        $('#dlg').dialog({title: "编辑"})
+        $('#dlg').dialog('open')
+    }
+    //添加新的行
+    function btnEditOk(){
+        var newObj = {}
+        newObj.工号 = $("#workno").textbox("getValue")
+        newObj.名 = $("#name").textbox("getValue")
+        newObj.英文名 = $("#name2").textbox("getValue")
+        newObj.部门 = $("#department").combobox("getValue")
+        newObj.职务 = $("#magor").combobox("getValue")
+        newObj.专业 = $("#magor2").combobox("getValue")
+        newObj.密码 = $("#password").textbox("getValue")
+        newObj.手机号 = $("#phones").textbox("getValue")
+        newObj.项目 = $("#projs").textbox("getValue")
+        if(newObj.英文名 == ''){
+            alert('英文名不能为空')
+            return
+        }else if(newObj.密码 == ''){
+            alert('密码不能为空')
+            return
+        }else if(newObj.职务 == ''){
+            alert('职务不能为空')
+            return
+        }
+        if(flagBtn == 2){
+            //更新行
+            var selRow = $('#dbGrid').datagrid('getSelected')
+            var selidx = $('#dbGrid').datagrid('getRowIndex', selRow)
+            newObj['_id'] = selRow['_id']
+            //更新
+            model.update(newObj,function(res){
+                if(res.state){
+                    $("#dbGrid").datagrid("updateRow",{  
+                        index:selidx, //行索引  
+                        row:res.data
+                    })
+                }
+             })
+        }else if(flagBtn == 1){
+            //添加
+            model.insert(newObj, function(res){
+                if(res.state){
+                    //更新行
+                    $("#dbGrid").datagrid("appendRow", res.data)
+                } 
+            })   
+        }
+       
+        //关闭对话框
+        $('#dlg').dialog('close')
+    }
+
+    //添加
+    function btnAdd(){
+        //打开对话框
+        flagBtn = 1
+        $('#dlg').dialog({title: "新加"})
+        $('#dlg').dialog('open')
+    }
+    //删除
+    function btnRemove(){
+        $.messager.confirm('提示框', '你确定要删除吗?',function(){
+            var rows = $('#dbGrid').datagrid('getChecked')
+            for(var i=0,len=rows.length;i<len;i++){
+                var selRow = rows[i]
+                var selIdx = $('#dbGrid').datagrid('getRowIndex', selRow);
+                //删除用对象
+                var newObj = {}
+                newObj['_id'] = selRow['_id']
+                //删除用参数
+                model.remove(newObj,function(res){
+                    if(res.state && res.data._id == -1){
+                        $('#dbGrid').datagrid('deleteRow', selIdx);
+                    }
+                })
+                 
+            }
+        })
+    }
+ 
+</script>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>舟山中远海运重工--技术中心</title>
+  <link rel="stylesheet" href="js/layui-v2.5.4/layui/css/layui.css">
+  <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+  <script type="text/javascript" src="js/ajax.js"></script>
+  <script src="js/layui-v2.5.4/layui/layui.all.js"></script>
+
+  <script src="config/config.js"></script>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header">
+    <div class="layui-logo">技术中心</div>
+    <!-- 头部区域（可配合layui已有的水平导航） -->
+     
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item">
+        <a href="javascript:;">
+          <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+          tonton
+        </a>
+        <dl class="layui-nav-child">
+          <dd><a href="">基本资料</a></dd>
+          <dd><a href="">安全设置</a></dd>
+        </dl>
+      </li>
+      <li class="layui-nav-item"><a href="">退了</a></li>
+    </ul>
+  </div>
+  
+  <div class="layui-side layui-bg-gray">
+    <div class="layui-side-scroll">
+      <div id="test12" class="demo-tree-more"></div>
+    </div>
+  </div>
+  
+  <div id="content" class="layui-body">
+        <iframe frameborder="0" id="contentFrame" style="width: 100%;" scrolling="auto"></iframe> 
+  </div>
+  
+  <div class="layui-footer">
+    <!-- 底部固定区域 -->
+    © layui.com - 底部固定区域
+  </div>
+</div>
+
+<script>
+//JavaScript代码区域
+layui.use('element', function(){
+    var element = layui.element;
+    LoadTree();
+
+    //<iframe>同级页面添加
+    $("#contentFrame").load(function () {
+        //var mainheight = $(this).contents().find("body").height();
+        //$(this).height(mainheight);
+        var h = $(window).height()-120;
+        $(this).css("height",h+"px");
+    });
+
+});
+
+function LoadTree(){
+    var tree = layui.tree,layer = layui.layer,util = layui.util
+
+    //模拟数据
+    var data = [{title: '工时管理',id: 200,spread:true,
+            children: [{title: '工时登记',id: 201}]
+        }
+        ,{title: '用户管理',id: 100,spread:true,
+            children: [{title: '用户',id: 101},{title: '工作项管理',id: 102}]
+        }];
+
+   //基本演示
+   tree.render({
+    elem: '#test12'
+    ,data: data
+    ,showCheckbox: false  //是否显示复选框
+    ,isJump: true //是否允许点击节点时弹出新窗口跳转
+    ,click: function(obj){
+        //console.log(obj.data)
+        var sid = obj.data.id;  //获取当前点击的节点数据
+        if (sid == 101) {
+            $("#contentFrame").attr("src", "manageuser.html?tt=" + config.version)
+        }else if(sid == 102){
+            $("#contentFrame").attr("src", "projectlist.html?tt=" + config.version)
+        }else if(sid == 201){
+            $("#contentFrame").attr("src", "manhourrecord.html?tt=" + config.version)
+        } 
+       
+    }
+  });
+
+   function loadNew(src, isNew) {
+        isNew = isNew || false
+        $("#content").empty()
+        if (!isNew) {
+            $("#content").load(src)
+        } else {
+            var cell = $("<iframe frameborder='0'> </iframe>")
+            cell.attr('src', "/" + src)
+            cell.addClass("mycontainer")
+            cell.css("height", $("#content").height())
+            var parent = $("#content")
+            parent.append(cell)
+        }
+    }
+}
+
+/**
+ * ifrme自适应页面高度，需要设定min-height
+ * @param iframe
+ */
+function setIframeHeight(iframe) {
+    if (iframe) {
+        var iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+        if (iframeWin.document.body) {
+            iframe.height = iframeWin.document.documentElement.scrollHeight || iframeWin.document.body.scrollHeight;
+        }
+    }
+}
+</script>
+
+</body>
+</html>

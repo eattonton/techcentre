@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>pdf显示</title>
+    <link rel='stylesheet' href="index.css" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes" />
+    <script src="jquery.js"></script>
+    <script src="pdfobject.min.js"></script>
+</head>
+
+<body>
+   <div id="pdf"></div>
+
+</body>
+
+<script type="text/javascript">
+    getQueryStringByName = function(name){
+        var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+        if (result == null || result.length < 1) {
+            return "";
+        }
+        return decodeURI(result[1]);
+    }
+
+    var file1 = "./NCR/file/N753/N753-H-086%20reply.pdf";
+    var file2 = "./NCR/file/"+getQueryStringByName("file");
+    window.onload = function (){
+        PDFObject.embed(file2,"#pdf");
+    };
+
+    
+</script>
+
+</html>

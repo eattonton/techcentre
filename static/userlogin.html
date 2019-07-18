@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>舟山中远海运重工--技术中心-用户登陆</title>
+    <link rel="stylesheet" type="text/css" href="js/easyui-1.5.3/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="js/easyui-1.5.3/themes/icon.css">
+    <script type="text/javascript" src="js/easyui-1.5.3/jquery.min.js"></script>
+    <script type="text/javascript" src="quality/config.js"></script>
+    <script type="text/javascript" src="js/easyui-1.5.3/jquery.easyui.min.js"></script>
+    <style type="text/css">
+        body
+        {
+            background: #D6E4FF;
+        }
+        div
+        {
+            display: block;
+        } 
+        h3
+        {
+            margin:16px 0;  
+            display: block;
+            line-height: 50px;
+            height:50px;
+            padding:0 10px;
+         }
+        #homebg
+        {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            padding-top: 220px;
+            padding-bottom: 150px;
+        }
+        #mainbox{
+            height: 300px;
+            width: 100%;
+            background-color: #325B80;
+            padding: 0 200px;
+        }
+        #leftbox{
+            float: left;
+            background-image: url('./res/home.jpg');
+            height: 300px;
+            width: 600px;
+        }
+        #registerbox
+        {
+            float: left;
+            width: 400px;
+            margin-left: 10px;
+        }
+        .loginbox-title
+        {
+            color: #fff;
+            font-weight: bold;
+            font-size: 20px;
+            height: 50px;
+            padding-left: 20px;
+        }
+        .row
+        {
+            padding: 10px 0;
+            height: 35px;
+            line-height: 22px;
+            position: relative;
+            margin:0 34px;
+        }
+ 
+        .noPic
+        {
+            background-image: none;
+            padding: 0 15px;
+            width: 300px;
+            height: 34px;
+            line-height: 34px;
+        }
+
+        input::-webkit-input-placeholder { 
+            color: #999; 
+            -webkit-transition: color.5s; 
+        } 
+        input:focus::-webkit-input-placeholder, input:hover::-webkit-input-placeholder { 
+            color: #c2c2c2; 
+            -webkit-transition: color.5s; 
+        } 
+
+        .login-btn{
+            width: 100%;
+            height: 100%;
+            font-size: 18px;
+        }
+      
+    </style>
+</head>
+<body>
+    <div id="homebg">
+       <div id="mainbox">
+        <div id="leftbox"></div>
+        <div id="registerbox">
+                <div class="loginbox-title">
+                    <h3>技术中心</h3>
+                </div>
+                <div class="row">
+                    <input type="text" value="" class="noPic" name="user"
+                        id="user" placeholder="工号/用户名"/> 
+                </div>
+                <div class="row">
+                    <input type="password" value="" class="noPic" name="pass"
+                        id="pass" placeholder="密码"/>
+                </div>
+                <div class="row btnArea">
+                    <button class="login-btn" id="submit" onclick="loginClick()">登陆</button>
+                </div>  
+        </div>
+        </div>
+    </div>
+     <script type="text/javascript">
+        function loginClick(){
+            var user = {};
+            user.name = $("#user").val();
+            user.pass = $("#pass").val();
+
+            config.userValid(user.name,user.pass,function(res){
+                console.log(res)
+                if(res.data == 0){
+                    config.alert("不存在此用户，请联系管理员!")
+                }else if(res.data == 1){
+                   config.alert("密码错误!")
+                }else if(res.state == true){
+                    config.localParamSet(config.storageName,res.data);
+                    location.href = '/index.html'
+                }
+            })
+        }
+
+    </script>
+</body>
+</html>
