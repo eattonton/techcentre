@@ -20,6 +20,14 @@ MyTable.GetRowsData = function(tableName){
     return obj1
 }
 
+MyTable.AddRow = function(stableName,newRow){
+    var table = layui.table
+    //更新行
+    var nowData = MyTable.GetRowsData(stableName)
+    nowData.data.push(newRow)
+    table.reload(stableName,{data: nowData.data})
+}
+
 MyTable.UpdateRowData = function(row, data){
     for (var i =data.length-1; i >= 0; i--) {
         if (data[i]["_id"] == row["_id"]) {
@@ -27,6 +35,26 @@ MyTable.UpdateRowData = function(row, data){
             break
         }
     }
+
+    return data
+}
+
+MyTable.UpdateRowDataByChecked = function(stableName,newData){
+    var table = layui.table
+    var data = table.cache[stableName]
+
+    for (var i = data.length - 1; i >= 0; i--) {
+        if(data[i].LAY_CHECKED){
+             for(var k in newData){
+                if(k == "_id") continue;
+                if(data[i].hasOwnProperty(k)){
+                    data[i][k] = newData[k]
+                }
+             }
+        }
+    }
+
+    table.reload(stableName,{data: data})
 
     return data
 }
@@ -42,6 +70,23 @@ MyTable.RemoveRowData = function(row, data){
 
     return data
 }
+
+MyTable.RemoveRowDataByChecked = function(stableName){
+    var table = layui.table
+    var data = table.cache[stableName]
+
+    for (var i = data.length - 1; i >= 0; i--) {
+        //console.log(oldData[i].LAY_CHECKED)   //LAY_TABLE_INDEX
+        if(data[i].LAY_CHECKED){
+            data.splice(i, 1)
+        }
+    }
+
+    table.reload(stableName,{data: data})
+
+    return data
+}
+
 
 MyTable.TableRowSelect = function(tableName){
     //单击行勾选checkbox事件

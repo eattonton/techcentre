@@ -71,18 +71,26 @@
             </div>
             <div class="layui-form-item">
                 <div class="layui-input-block" style="float:right">
-                    <button class="layui-btn" lay-submit="" lay-filter="demo1">保存</button>
+                    <button class="layui-btn" lay-submit="" lay-filter="saveDlg">保存</button>
                     <button type="reset" class="layui-btn layui-btn-primary">重置</button>
                 </div>
             </div>
         </form>
     </div>
 </body>
+<!--用户检测-->
+<script>
+  var User={}
+  config.userCheck(function(user) {
+        User = user
+        $('#user').text(User["姓名"])
+  })
+</script>
 <script type="text/javascript">
     var model = {
         run: function(call, url, param, callback) {
             call(url, param, function(res) {
-                !res.state && $.messager.info("error", res.data);
+                !res.state && layer.msg(res.data);
                 res.state && callback && callback(res);
             })
         },
@@ -103,221 +111,208 @@
         }
     }
 </script>
+
 <script>
-var objEditId =0   //如果为 0 表示需要新增加，如果有值 那就需要编辑
-//JavaScript代码区域
-layui.use(['element','table','form','layer'], function(){
-    var element = layui.element
-    ,table = layui.table
-    ,form = layui.form
-    ,layer = layui.layer
+    var objEditId =0   //如果为 0 表示需要新增加，如果有值 那就需要编辑
+    //JavaScript代码区域
+    layui.use(['element','table','form','layer'], function(){
+        var element = layui.element
+        ,table = layui.table
+        ,form = layui.form
+        ,layer = layui.layer
 
-    InitTable(table)
-    //设置为单选
-    MyTable.TableSingleSelect("dbGrid")
-    //init dlg
-    InitForm(form)
-    //刷新
-    btnToolBarRefresh()
-})
-
-function InitTable(table){
-    var dbGrid = table.render({
-        elem: '#table1'
-        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
-        ,height: 'full-10'
-        ,url:""
-        ,id:"dbGrid"
-        ,toolbar: '#toolbarDemo'
-        ,cols: [[
-           {type:'numbers',  title: '序号'}
-          ,{type: 'checkbox'}
-          ,{field:'_id',  title: '_id',hide:true}
-          ,{field:'工时代码', width:80, title: '工时代码'}
-          ,{field:'船号', width:80, title: '船号', sort: true}
-          ,{field:'工作任务', width:400, title: '工作任务'}
-          ,{field:'科室', title: '科室',sort: true}  
-          ,{field:'专业', title: '专业', sort: true}
-          ,{field:'预估工时', title: '预估工时', sort: true}
-        ]]
-    });
-     //监听头工具栏事件
-    table.on('toolbar(dbGrid)', function(obj){
-        var checkStatus = table.checkStatus(obj.config.id)
-        ,data = checkStatus.data; //获取选中的数据
-        switch(obj.event){
-            case 'refresh':
-                btnToolBarRefresh()    //刷新
-                break
-            case 'add':
-                btnToolBarAdd()
-                break;
-            case 'edit':
-                btnToolBarEdit(data)
-                break;
-            case 'delete':
-                btnToolBarDel(data)
-                break;
-        };
-    });
-}
-
-//刷新
-function btnToolBarRefresh(){
-    model.get({},function(res) {
-        if (res.state) {
-            var table = layui.table
-            table.reload('dbGrid', {
-                data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
-              });
-        }
-    });
-}
-
-//添加
-function btnToolBarAdd(){
-    //layer.msg('添加');
-    objEditId = 0
-    $('#myform')[0].reset()
-　　layui.form.render()
-    showDialog("新加")
-}
-
-//编辑
-function btnToolBarEdit(data){
-    var form = layui.form
-    if(data.length === 0){
-        layer.msg('请选择一行');
-    } else if(data.length > 1){
-        layer.msg('只能同时编辑一个');
-    } else {
-        //layer.alert('编辑 [id]：'+ checkStatus.data[0].id);
-        //表单初始赋值
-        form.val('myform', data[0])
-        objEditId = data[0]["_id"]
-        showDialog()
-    }
-}
-
-function showDialog(title="编辑"){
-    layer.open({
-        type: 1,
-        closeBtn: 1,
-        shift: 2,
-        shadeClose: true,
-        content: $("#dlg"),
-        title: title,
-        fixed:false,
-        top:10,
-        area: ['434px', '460px']
-    });
-}
-
-//删除
-function btnToolBarDel(data){
-    if(data.length === 0){
-        layer.msg('请选择一行')
-    } else {
-       // console.log(checkStatus)
-        //$("div[lay-id=dbGrid] .layui-form-checked").not('.header').parents('tr').remove();
-        //var tr0 =$("div[lay-id=dbGrid] .layui-form-checked").not('.header').parents('tr');
-        // $.each(tr0, function(index,item){
-       // var txt1 = $(tr0).find("td[data-field=英文名] div:contains("+data[0]["英文名"]+")").text();
-       // console.log(txt1);
-    //});   
-        layer.confirm('确定删除?', {icon: 3, title:'提示'}, function(index){
-            btnRemove(data[0])
-            layer.close(index)
-        })  
-    }
-}
-
-function InitForm(form){
-    //监听提交
-    form.on('submit(demo1)', btnSave);
-
-    //加载配置
-    model.getDict({},function(res) {
-        $.each(res.data.设计工时代码,function(i,v){
-            $("#工时代码").append("<option value='" + v["1"] + "' data-desc='"+v["3"]+"'>" + v["1"]+","+v["2"] + "</option>")
-        })
-        $.each(res.data.项目,function(i,v){
-            $("#船号").append("<option value='" + v["1"] + "'>" + v["1"]+","+v["2"] + "</option>")
-        })
-        $.each(res.data.技术中心科室,function(i,v){
-            $("#科室").append("<option value='" + v + "'>" + v + "</option>")
-        })
-        $.each(res.data.专业,function(i,v){
-            $("#专业").append("<option value='" + v + "'>" + v + "</option>")
-        })
-        
-        //select 之后必须执行，不然不显示
-        form.render("select")
+        InitTable(table)
+        //设置为单选
+        MyTable.TableSingleSelect("dbGrid")
+        //init dlg
+        InitForm(form)
+        //刷新
+        btnToolBarRefresh()
     })
 
-    form.on('select(工时代码)', function(data){
-        //获取当前选中下拉项的索引
-        var indexGID = data.elem.selectedIndex
-        //获取当前选中下拉项的自定义属性值 title
-        var sDesc = $(data.elem[indexGID]).attr("data-desc")
-        //小tips
-        layer.tips(sDesc, '#dlg', {
-            tips: [1, '#3595CC'],
-            time: 2000
+    function InitTable(table){
+        var dbGrid = table.render({
+            elem: '#table1'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,height: 'full-10'
+            ,url:""
+            ,id:"dbGrid"
+            ,toolbar: '#toolbarDemo'
+            ,cols: [[
+               {type:'numbers',  title: '序号'}
+              ,{type: 'checkbox'}
+              ,{field:'_id',  title: '_id',hide:true}
+              ,{field:'工时代码', width:80, title: '工时代码'}
+              ,{field:'船号', width:80, title: '船号', sort: true}
+              ,{field:'工作任务', width:400, title: '工作任务'}
+              ,{field:'科室', title: '科室',sort: true}  
+              ,{field:'专业', title: '专业', sort: true}
+              ,{field:'预估工时', title: '预估工时', sort: true}
+            ]]
         });
-    })
-}
+         //监听头工具栏事件
+        table.on('toolbar(dbGrid)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id)
+            ,data = checkStatus.data; //获取选中的数据
+            switch(obj.event){
+                case 'refresh':
+                    btnToolBarRefresh()    //刷新
+                    break
+                case 'add':
+                    btnToolBarAdd()
+                    break;
+                case 'edit':
+                    btnToolBarEdit(data)
+                    break;
+                case 'delete':
+                    btnToolBarDel(data)
+                    break;
+            };
+        });
+    }
 
-//保存 from submit
-function btnSave(data){
-    //layer.alert(JSON.stringify(data.field), {
-     //   title: '最终的提交信息'
-    //})
-    var table = layui.table
-    if(objEditId == 0){
-        //添加
-        model.insert(data.field, function(res){
+
+    function InitForm(form){
+        //监听提交
+        form.on('submit(saveDlg)', btnSave);
+
+        //加载配置
+        model.getDict({},function(res) {
+            $.each(res.data.设计工时代码,function(i,v){
+                $("#工时代码").append("<option value='" + v["1"] + "' data-desc='"+v["3"]+"'>" + v["1"]+","+v["2"] + "</option>")
+            })
+            $.each(res.data.项目,function(i,v){
+                $("#船号").append("<option value='" + v["1"] + "'>" + v["1"]+","+v["2"] + "</option>")
+            })
+            $.each(res.data.技术中心科室,function(i,v){
+                $("#科室").append("<option value='" + v + "'>" + v + "</option>")
+            })
+            $.each(res.data.专业,function(i,v){
+                $("#专业").append("<option value='" + v + "'>" + v + "</option>")
+            })
+            
+            //select 之后必须执行，不然不显示
+            form.render("select")
+        })
+
+        form.on('select(工时代码)', function(data){
+            //获取当前选中下拉项的索引
+            var indexGID = data.elem.selectedIndex
+            //获取当前选中下拉项的自定义属性值 title
+            var sDesc = $(data.elem[indexGID]).attr("data-desc")
+            //小tips
+            layer.tips(sDesc, '#dlg', {
+                tips: [1, '#3595CC'],
+                time: 2000
+            });
+        })
+    }
+
+</script>
+
+<script>
+    //刷新
+    function btnToolBarRefresh(){
+        model.get({},function(res) {
+            if (res.state) {
+                var table = layui.table
+                table.reload('dbGrid', {
+                    data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
+                  });
+            }
+        });
+    }
+
+    //添加
+    function btnToolBarAdd(){
+        //layer.msg('添加');
+        objEditId = 0
+        $('#myform')[0].reset()
+    　　layui.form.render()
+        showDialog("新加")
+    }
+
+    //编辑
+    function btnToolBarEdit(data){
+        var form = layui.form
+        if(data.length === 0){
+            layer.msg('请选择一行');
+        } else if(data.length > 1){
+            layer.msg('只能同时编辑一个');
+        } else {
+            //layer.alert('编辑 [id]：'+ checkStatus.data[0].id);
+            //表单初始赋值
+            form.val('myform', data[0])
+            objEditId = data[0]["_id"]
+            showDialog()
+        }
+    }
+
+    function showDialog(title="编辑"){
+        layer.open({
+            type: 1,
+            closeBtn: 1,
+            shift: 2,
+            shadeClose: true,
+            content: $("#dlg"),
+            title: title,
+            fixed:false,
+            top:10,
+            area: ['434px', '460px']
+        });
+    }
+
+    //保存 from submit
+    function btnSave(data){
+        var table = layui.table
+        if(objEditId == 0){
+            //添加
+            model.insert(data.field, function(res){
+                if(res.state){
+                    //更新行
+                    MyTable.AddRow("dbGrid",res.data)
+                } 
+            })   
+        }else if(objEditId > 0){
+            var newObj = data.field
+            newObj["_id"] = objEditId
+            model.update(newObj, function(res){
+                if(res.state){
+                    MyTable.UpdateRowDataByChecked("dbGrid",res.data)
+                }
+            })
+        }
+
+        layer.closeAll(); //疯狂模式，关闭所有层
+        return false;
+    }
+
+    //删除
+    function btnToolBarDel(data){
+        if(data.length === 0){
+            layer.msg('请选择一行')
+        } else {
+       
+            layer.confirm('确定删除?', {icon: 3, title:'提示'}, function(index){
+                btnRemove(data[0])
+                layer.close(index)
+            })  
+        }
+    }
+
+    //删除
+    function btnRemove(data){
+        //console.log(data)
+        //删除用对象
+        var newObj = {}
+        newObj['_id'] = data['_id']
+        //删除用参数
+        model.remove(newObj,function(res){
             if(res.state){
-                //更新行
-                var nowData = MyTable.GetRowsData("dbGrid")
-                nowData.data.push(res.data)
-                table.reload("dbGrid",{data: nowData.data})
-            } 
-        })   
-    }else if(objEditId > 0){
-        var newObj = data.field
-        newObj["_id"] = objEditId
-        model.update(newObj, function(res){
-            if(res.state){
-                var nowData = MyTable.GetRowsData("dbGrid")
-                var newData = MyTable.UpdateRowData(res.data, nowData.data)
-                table.reload("dbGrid",{data: newData})
+                MyTable.RemoveRowDataByChecked("dbGrid")
             }
         })
     }
-
-    layer.closeAll(); //疯狂模式，关闭所有层
-    return false;
-}
-
-//删除
-function btnRemove(data){
-    //console.log(data)
-    //删除用对象
-    var newObj = {}
-    newObj['_id'] = data['_id']
-    var table = layui.table
-    //删除用参数
-    model.remove(newObj,function(res){
-        if(res.state){
-            var nowData = MyTable.GetRowsData("dbGrid")
-            console.log(res)
-            var newData = MyTable.RemoveRowData(res.data, nowData.data)
-            table.reload("dbGrid",{data: newData})
-        }
-    })
-}
-
 
 </script>
  

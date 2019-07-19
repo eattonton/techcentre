@@ -104,11 +104,19 @@
         <table class="layui-hide" id="table2" lay-filter="dbGrid2"></table>
     </div>
 </body>
+<!--用户检测-->
+<script>
+  var User={}
+  config.userCheck(function(user) {
+        User = user
+        $('#user').text(User["姓名"])
+  })
+</script>
 <script type="text/javascript">
     var model = {
         run: function(call, url, param, callback) {
             call(url, param, function(res) {
-                !res.state && $.messager.info("error", res.data);
+                !res.state && layer.msg(res.data);
                 res.state && callback && callback(res);
             })
         },
@@ -136,213 +144,255 @@
     }
 </script>
 <script>
-var objEditId =0   //如果为 0 表示需要新增加，如果有值 那就需要编辑
-var dlg2Index    //弹窗的序号，用于关闭
-var oneWeekDesc   //一周的日期描述 2019-07-15_2019-07-21
-var updateDataArr = []  //变更上传的数据
-var selDateStr = ""    //选择的日期
-//JavaScript代码区域
-layui.use(['element','table','form','layer','laydate'], function(){
-    var element = layui.element
-    ,table = layui.table
-    ,form = layui.form
-    ,layer = layui.layer
-    ,laydate = layui.laydate
-    //初始化 日期
-    //常规用法
-    var nowDate = new Date()
-    selDateStr =nowDate.Format("Y-MM-dd")
-    InitDate()
+    var objEditId =0   //如果为 0 表示需要新增加，如果有值 那就需要编辑
+    var dlg2Index    //弹窗的序号，用于关闭
+    var oneWeekDesc   //一周的日期描述 2019-07-15_2019-07-21
+    var updateDataArr = []  //变更上传的数据
+    var selDateStr = ""    //选择的日期
+    //JavaScript代码区域
+    layui.use(['element','table','form','layer','laydate'], function(){
+        var element = layui.element
+        ,table = layui.table
+        ,form = layui.form
+        ,layer = layui.layer
+        ,laydate = layui.laydate
+        //初始化 日期
+        //常规用法
+        var nowDate = new Date()
+        selDateStr =nowDate.Format("Y-MM-dd")
+        InitDate()
 
-    //首先加载的是今天的
-    var title1 = GetTableTitle()
-    InitTable(table, title1)
-    InitTable2(table)
-    //设置为单选
-    MyTable.TableSingleSelect("dbGrid")
-    //init dlg
-    InitForm(form)
-    //刷新
-    btnToolBarRefresh()
-})
-
-
-function GetTableTitle(sdate=""){
-    var nowDay = null
-    if(sdate==""){
-        nowDay = new Date()
-    }else{
-        nowDay = new Date(sdate)
-    }
-
-    var title1 = []
-    title1[0] = {type:'numbers',  title: '序号'}
-    title1[1] = {type: 'checkbox'}
-    title1[2] = {field:'_id',  title: '_id',hide:true}
-    title1[2] = {field:'任务id',  title: '任务id',hide:true}
-    title1[3] = {field:'工时代码', width:100, title: '工时代码',totalRowText: '合计'}
-    title1[4] = {field:'船号', width:80, title: '船号', sort: true}
-    title1[5] = {field:'工作任务', width:300, title: '工作任务'}
-    var titleArr = GetOneWeek(nowDay)
-     
-    $.each(titleArr,function(i,v){
-        title1.push({field:v["3"], width:80, title: v["1"]+"  "+v["2"],edit: 'text',totalRow: true})
+        //首先加载的是今天的
+        var title1 = GetTableTitle()
+        InitTable(table, title1)
+        InitTable2(table)
+        //设置为单选
+        MyTable.TableSingleSelect("dbGrid")
+        //init dlg
+        InitForm(form)
+        //刷新
+        btnToolBarRefresh()
     })
-    //当前选择一周的描述
-    if(sdate==""){
-        nowDay = new Date()
-    }else{
-        nowDay = new Date(sdate)
-    }
-    oneWeekDesc = GetOneWeekStr(nowDay)
-    console.log(oneWeekDesc)
-    return title1
-}
 
-function InitTable(table,title1=[]){
-    var dbGrid = table.render({
-        elem: '#table1'
-        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
-        ,height: 'full-10'
-        ,url:""
-        ,id:"dbGrid"
-        ,totalRow: true
-        ,toolbar: '#toolbarDemo'
-        ,cols: [title1]
-    });
-     //监听头工具栏事件
-    table.on('toolbar(dbGrid)', function(obj){
-        var checkStatus = table.checkStatus(obj.config.id)
-        ,data = checkStatus.data; //获取选中的数据
-        switch(obj.event){
-            case 'refresh':
-                btnToolBarRefresh()    //刷新
-                break
-            case 'add':
-                btnToolBarAdd()
-                break;
-            case 'save':
-                btnToolBarSave()
-                break;
-            case 'delete':
-                btnToolBarDel(data)
-                break;
-        };
-    });
 
-    //监听行编辑
-    //监听单元格编辑
-    table.on('edit(dbGrid)', function(obj){
-        var value = obj.value //得到修改后的值
-        ,data = obj.data //得到所在行所有键值
-        ,field = obj.field; //得到字段
-        var newObj = {}
-        newObj["任务id"] = data.任务id
-        newObj["工时"] = parseFloat(value) || 0
-        newObj["日期"] = field
-        newObj["周日期"] = oneWeekDesc
-        console.log(newObj)
-        updateDataArr.push(newObj)
-    })
-}
-
-//加载日期控件
-function InitDate(){
-    var laydate = layui.laydate
-    
-    laydate.render({
-        elem: '#testDate'
-        ,trigger: 'click'
-        ,value:selDateStr
-        ,done: function(value, date){
-            //console.log('你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
-            selDateStr = value
-            ChangeDate()
+    function GetTableTitle(sdate=""){
+        var nowDay = null
+        if(sdate==""){
+            nowDay = new Date()
+        }else{
+            nowDay = new Date(sdate)
         }
-    });
-}
 
-//当日期变化时
-function ChangeDate(){
-    var table = layui.table
-    ,laydate = layui.laydate
-
-    var title1 = GetTableTitle(selDateStr)
-    
-    table.reload('dbGrid', {
-        cols: [title1] // 调用table.reload 重新渲染显示加载追加了数据的表格
-    })
-    
-    //刷新
-    btnToolBarRefresh()
-}
-
-//计算 某天开始的一周
-function GetOneWeek(nowDate){
-    var res = []
-    var weekday = []
-    weekday[0] = "星期日"
-    weekday[1] = "星期一"
-    weekday[2] = "星期二"
-    weekday[3] = "星期三"
-    weekday[4] = "星期四"
-    weekday[5] = "星期五"
-    weekday[6] = "星期六"
- 
-    //移到星期一
-    nowDate.setDate(nowDate.getDate() - nowDate.getDay() +1)
-    //var oneDay = nowDate.getDay()
-    for(var i=1;i<=7;i++){
-        res.push({"1":weekday[nowDate.getDay()],"2":nowDate.Format("M月d"),"3":nowDate.Format("Y-MM-dd")}) 
-        nowDate.setDate(nowDate.getDate() +1)
+        var title1 = []
+        title1[0] = {type:'numbers',  title: '序号'}
+        title1[1] = {type: 'checkbox'}
+        title1[2] = {field:'_id',  title: '_id',hide:true}
+        title1[2] = {field:'任务id',  title: '任务id',hide:true}
+        title1[3] = {field:'工时代码', width:100, title: '工时代码',totalRowText: '合计'}
+        title1[4] = {field:'船号', width:80, title: '船号', sort: true}
+        title1[5] = {field:'工作任务', width:300, title: '工作任务'}
+        var titleArr = GetOneWeek(nowDay)
+         
+        $.each(titleArr,function(i,v){
+            title1.push({field:v["3"], width:80, title: v["1"]+"  "+v["2"],edit: 'text',totalRow: true})
+        })
+        //当前选择一周的描述
+        if(sdate==""){
+            nowDay = new Date()
+        }else{
+            nowDay = new Date(sdate)
+        }
+        oneWeekDesc = GetOneWeekStr(nowDay)
+        console.log(oneWeekDesc)
+        return title1
     }
 
-    return res
-}
+    function InitTable(table,title1=[]){
+        var dbGrid = table.render({
+            elem: '#table1'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,height: 'full-10'
+            ,url:""
+            ,id:"dbGrid"
+            ,totalRow: true
+            ,toolbar: '#toolbarDemo'
+            ,cols: [title1]
+        });
+         //监听头工具栏事件
+        table.on('toolbar(dbGrid)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id)
+            ,data = checkStatus.data; //获取选中的数据
+            switch(obj.event){
+                case 'refresh':
+                    btnToolBarRefresh()    //刷新
+                    break
+                case 'add':
+                    btnToolBarAdd()
+                    break;
+                case 'save':
+                    btnToolBarSave()
+                    break;
+                case 'delete':
+                    btnToolBarDel(data)
+                    break;
+            };
+        });
 
-function GetOneWeekStr(nowDate){
-    var res = []
-    //移到星期一
-    nowDate.setDate(nowDate.getDate() - nowDate.getDay() +1)
-    var str1 = nowDate.Format("Y-MM-dd")
-    //计算礼拜天
-    var date2 = new Date(str1)
-    date2.setDate(date2.getDate()+6)
-    var str2 = date2.Format("Y-MM-dd")
+        //监听行编辑
+        //监听单元格编辑
+        table.on('edit(dbGrid)', function(obj){
+            var value = obj.value //得到修改后的值
+            ,data = obj.data //得到所在行所有键值
+            ,field = obj.field; //得到字段
+            var newObj = {}
+            newObj["任务id"] = data.任务id
+            newObj["工时"] = parseFloat(value) || 0
+            newObj["日期"] = field
+            newObj["周日期"] = oneWeekDesc
+            console.log(newObj)
+            updateDataArr.push(newObj)
+        })
+    }
 
-    return str1+"_"+str2
-}
+    function InitTable2(table){
+        var dbGrid2 = table.render({
+            elem: '#table2'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,url:""
+            ,id:"dbGrid2"
+            ,height: 'full-100'
+            ,cols: [[
+               {type:'numbers',  title: '序号'}
+              ,{field:'_id',  title: '_id',hide:true}
+              ,{field:'工时代码', width:80, title: '工时代码'}
+              ,{field:'船号', width:80, title: '船号', sort: true}
+              ,{field:'工作任务', width:400, title: '工作任务'}
+              ,{field:'科室', width:80,title: '科室'}  
+              ,{field:'专业', width:80,title: '专业'}
+              ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:80}
+            ]]
+        });
+         //监听头工具栏事件
+        table.on('tool(dbGrid2)', function(obj){
+            var data = obj.data;
+            //console.log(obj)
+            switch(obj.event){
+                case 'sel':
+                    SelectOneRowDlg2(data)
+                    break
+                
+            };
+        });
+    }
 
-function InitTable2(table){
-    var dbGrid2 = table.render({
-        elem: '#table2'
-        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
-        ,url:""
-        ,id:"dbGrid2"
-        ,height: 'full-100'
-        ,cols: [[
-           {type:'numbers',  title: '序号'}
-          ,{field:'_id',  title: '_id',hide:true}
-          ,{field:'工时代码', width:80, title: '工时代码'}
-          ,{field:'船号', width:80, title: '船号', sort: true}
-          ,{field:'工作任务', width:400, title: '工作任务'}
-          ,{field:'科室', width:80,title: '科室'}  
-          ,{field:'专业', width:80,title: '专业'}
-          ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:80}
-        ]]
-    });
-     //监听头工具栏事件
-    table.on('tool(dbGrid2)', function(obj){
-        var data = obj.data;
-        //console.log(obj)
-        switch(obj.event){
-            case 'sel':
-                SelectOneRowDlg2(data)
-                break
+    function InitForm(form){
+        //监听提交
+        form.on('submit(demo1)', btnSave);
+
+        //加载配置
+        model.getDict({},function(res) {
+            $.each(res.data.设计工时代码,function(i,v){
+                $("#工时代码").append("<option value='" + v["1"] + "' data-desc='"+v["3"]+"'>" + v["1"]+","+v["2"] + "</option>")
+            })
+            $.each(res.data.项目,function(i,v){
+                $("#船号").append("<option value='" + v["1"] + "'>" + v["1"]+","+v["2"] + "</option>")
+            })
+            $.each(res.data.技术中心科室,function(i,v){
+                $("#科室").append("<option value='" + v + "'>" + v + "</option>")
+            })
+            $.each(res.data.专业,function(i,v){
+                $("#专业").append("<option value='" + v + "'>" + v + "</option>")
+            })
             
-        };
-    });
-}
+            //select 之后必须执行，不然不显示
+            form.render("select")
+        })
+
+        form.on('select(工时代码)', function(data){
+            //获取当前选中下拉项的索引
+            var indexGID = data.elem.selectedIndex
+            //获取当前选中下拉项的自定义属性值 title
+            var sDesc = $(data.elem[indexGID]).attr("data-desc")
+            //小tips
+            layer.tips(sDesc, '#dlg', {
+                tips: [1, '#3595CC'],
+                time: 2000
+            });
+        })
+    }
+
+    //加载日期控件
+    function InitDate(){
+        var laydate = layui.laydate
+        
+        laydate.render({
+            elem: '#testDate'
+            ,trigger: 'click'
+            ,value:selDateStr
+            ,done: function(value, date){
+                //console.log('你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
+                selDateStr = value
+                ChangeDate()
+            }
+        });
+    }
+
+    //当日期变化时
+    function ChangeDate(){
+        var table = layui.table
+        ,laydate = layui.laydate
+
+        var title1 = GetTableTitle(selDateStr)
+        
+        table.reload('dbGrid', {
+            cols: [title1] // 调用table.reload 重新渲染显示加载追加了数据的表格
+        })
+        
+        //刷新
+        btnToolBarRefresh()
+    }
+
+</script>
+
+<!--日期函数-->
+<script>
+    //计算 某天开始的一周
+    function GetOneWeek(nowDate){
+        var res = []
+        var weekday = []
+        weekday[0] = "星期日"
+        weekday[1] = "星期一"
+        weekday[2] = "星期二"
+        weekday[3] = "星期三"
+        weekday[4] = "星期四"
+        weekday[5] = "星期五"
+        weekday[6] = "星期六"
+     
+        //移到星期一
+        nowDate.setDate(nowDate.getDate() - nowDate.getDay() +1)
+        //var oneDay = nowDate.getDay()
+        for(var i=1;i<=7;i++){
+            res.push({"1":weekday[nowDate.getDay()],"2":nowDate.Format("M月d"),"3":nowDate.Format("Y-MM-dd")}) 
+            nowDate.setDate(nowDate.getDate() +1)
+        }
+
+        return res
+    }
+
+    function GetOneWeekStr(nowDate){
+        var res = []
+        //移到星期一
+        nowDate.setDate(nowDate.getDate() - nowDate.getDay() +1)
+        var str1 = nowDate.Format("Y-MM-dd")
+        //计算礼拜天
+        var date2 = new Date(str1)
+        date2.setDate(date2.getDate()+6)
+        var str2 = date2.Format("Y-MM-dd")
+
+        return str1+"_"+str2
+    }
+</script>
+<script>
 //选择项后添加 到 编辑行
 function SelectOneRowDlg2(selData){
     layer.close(dlg2Index)
@@ -419,68 +469,14 @@ function showDialog(title="选择工作内容"){
     });
 }
 
-//删除
-function btnToolBarDel(data){
-    if(data.length === 0){
-        layer.msg('请选择一行')
-    } else {
-        layer.confirm('确定删除?', {icon: 3, title:'提示'}, function(index){
-            btnRemove(data[0])
-            layer.close(index)
-        })  
-    }
-}
-
-function InitForm(form){
-    //监听提交
-    form.on('submit(demo1)', btnSave);
-
-    //加载配置
-    model.getDict({},function(res) {
-        $.each(res.data.设计工时代码,function(i,v){
-            $("#工时代码").append("<option value='" + v["1"] + "' data-desc='"+v["3"]+"'>" + v["1"]+","+v["2"] + "</option>")
-        })
-        $.each(res.data.项目,function(i,v){
-            $("#船号").append("<option value='" + v["1"] + "'>" + v["1"]+","+v["2"] + "</option>")
-        })
-        $.each(res.data.技术中心科室,function(i,v){
-            $("#科室").append("<option value='" + v + "'>" + v + "</option>")
-        })
-        $.each(res.data.专业,function(i,v){
-            $("#专业").append("<option value='" + v + "'>" + v + "</option>")
-        })
-        
-        //select 之后必须执行，不然不显示
-        form.render("select")
-    })
-
-    form.on('select(工时代码)', function(data){
-        //获取当前选中下拉项的索引
-        var indexGID = data.elem.selectedIndex
-        //获取当前选中下拉项的自定义属性值 title
-        var sDesc = $(data.elem[indexGID]).attr("data-desc")
-        //小tips
-        layer.tips(sDesc, '#dlg', {
-            tips: [1, '#3595CC'],
-            time: 2000
-        });
-    })
-}
-
 //保存 from submit
 function btnSave(data){
-    //layer.alert(JSON.stringify(data.field), {
-     //   title: '最终的提交信息'
-    //})
     var table = layui.table
     if(objEditId == 0){
         //添加
         model.insert(data.field, function(res){
             if(res.state){
-                //更新行
-                var nowData = MyTable.GetRowsData("dbGrid")
-                nowData.data.push(res.data)
-                table.reload("dbGrid",{data: nowData.data})
+                MyTable.AddRow("dbGrid",res.data)
             } 
         })   
     }else if(objEditId > 0){
@@ -488,9 +484,7 @@ function btnSave(data){
         newObj["_id"] = objEditId
         model.update(newObj, function(res){
             if(res.state){
-                var nowData = MyTable.GetRowsData("dbGrid")
-                var newData = MyTable.UpdateRowData(res.data, nowData.data)
-                table.reload("dbGrid",{data: newData})
+                MyTable.UpdateRowDataByChecked("dbGrid",res.data)
             }
         })
     }
@@ -500,24 +494,29 @@ function btnSave(data){
 }
 
 //删除
+function btnToolBarDel(data){
+    if(data.length === 0){
+        layer.msg('请选择一行')
+    } else {
+        layer.confirm('确定删除?', {icon: 3, title:'提示'}, function(index){
+            btnRemove(data[0])
+            //关闭自己
+            layer.close(index)
+        })  
+    }
+}
+
+//删除
 function btnRemove(data){
-    //console.log(data)
-    //删除用对象
-    var table = layui.table
     //删除用参数
     model.remove(data,function(res){
         if(res.state){
-            var nowData = MyTable.GetRowsData("dbGrid")
-            console.log(res)
-            var newData = MyTable.RemoveRowData(res.data, nowData.data)
-            table.reload("dbGrid",{data: newData})
-
+            MyTable.RemoveRowDataByChecked("dbGrid")
             //laydate bug ajax之后需要重新渲染
             InitDate()
         }
     })
 }
-
 
 </script>
  

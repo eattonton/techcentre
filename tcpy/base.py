@@ -11,7 +11,7 @@ def Result(*args):
     if args is None:
         return None,False
     if isinstance(args[0],(list,tuple)) and len(args[0]) >=2 and isinstance(args[0][1],bool):
-            return args[0][0],args[0][1]
+        return args[0][0],args[0][1]
     else:
         data = args[0]
         flag=True

@@ -27,7 +27,7 @@ var AJAX = {
     var _config = $.extend({}, config || {});
     _config.success = function(res){
       try{
-        success && success(res);
+        success && success(res)
       }catch(e){
         console.log(e);
       }

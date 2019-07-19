@@ -34,6 +34,18 @@ class User(BaseControl):
             self.userlst.append(item)
         return self.userlst
 
+    def insert(self, item={}):
+        if len(item) == 0:
+            return None
+        obj1 = {"英文名": item.get('英文名','')}
+        item2 = self.table.find_one(obj1)
+        if item2 is not None:
+            return "用户已经存在",False
+        max = self.getTableId(self.table)
+        item["_id"] = max + 1
+        self.table.insert(item)
+        return item
+
     def update(self, item):
         id1 = item.get('_id', -1)
         self.table.update({'_id': id1}, {'$set': item}, multi=False)
