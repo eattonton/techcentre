@@ -191,9 +191,9 @@
         //init dlg
         //InitForm(form)
         //加载初始化
-        LoadDictFromWeb()
+        LoadDictFromWeb(btnToolBarRefresh)
         //刷新
-        btnToolBarRefresh()
+        //btnToolBarRefresh()
 
     })
  
@@ -374,7 +374,7 @@
         btnToolBarRefresh()
     }
 
-    function LoadDictFromWeb(){
+    function LoadDictFromWeb(cb){
         var table = layui.table
 
         model.getDict({},function(res) {
@@ -387,6 +387,8 @@
                     ,limit:res.data["设计工时代码"].length
                     ,data: res.data["设计工时代码"] // 调用table.reload 重新渲染显示加载追加了数据的表格
                 });
+
+                typeof cb == 'function' && cb(res)
             }
         })
     }
