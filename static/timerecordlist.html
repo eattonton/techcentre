@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>舟山中远海运重工--技术中心--工时列表</title>
+    <link rel="stylesheet" href="js/layui-v2.5.4/layui/css/layui.css">
+    <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="js/ajax.js"></script>
+    <script src="js/layui-v2.5.4/layui/layui.js"></script>
+
+    <script src="config/config.js"></script>
+    <script src="config/mylayuitable.js"></script>
+    <script src="config/datehelper.js"></script>
+</head>
+<body style="padding:0px;margin-top:-10px;"> 
+   <script type="text/html" id="toolbarDemo">
+        <a class="layui-btn layui-btn-xs" lay-event="refresh">刷新</a>
+   </script>
+    <div>
+        <table class="layui-hide" id="table1" lay-filter="dbGrid"></table>
+    </div>
+
+    <script type="text/html" id="TplRowCode">
+        <input type="button" name="code" value="{{d.周日期}}" row-id="{{d.周日期}}" class="layui-btn layui-btn-primary" 
+            style=" background-color:Transparent; border-style: none; outline: none;width:100%;color:#0000ff;" 
+            lay-text="" lay-filter="codeBtn" onclick="btnRowCode(this)"/>
+    </script>
+ 
+</body>
+<!--用户检测-->
+<script>
+  var User={}
+  config.userCheck(function(user) {
+        User = user
+        $('#user').text(User["姓名"])
+  })
+</script>
+<script type="text/javascript">
+    var model = {
+        run: function(call, url, param, callback) {
+            call(url, param, function(res) {
+                !res.state && layer.msg(res.data);
+                res.state && callback && callback(res);
+            })
+        },
+        get: function(param, callback) {
+            model.run(AJAX.get, "/tc/recorditem/getSumWeeks", param, callback);
+        }
+        ,getDict: function(param, callback) {
+            model.run(AJAX.get, "/tc/diction/get", param, callback)
+        }
+    }
+</script>
+<script type="text/javascript">
+    var numWeek =10   //显示十个星期的 
+    var weekDescArr = []  //周日期 描述列表
+</script>
+<script>
+    //JavaScript代码区域
+    layui.use(['element','table','form','layer'], function(){
+        var element = layui.element
+        ,table = layui.table
+        ,form = layui.form
+        ,layer = layui.layer
+
+        InitTable(table)
+
+        let nowDate = new Date()
+        nowDate =DateHelper.GetCurMonday(nowDate)
+        for(let i=0;i<=numWeek;i++){
+            let str1 = DateHelper.GetOneWeekStr(nowDate)
+            let obj1 = {}
+            obj1["周日期"] = str1
+            obj1["登记人"] = User.英文名
+            weekDescArr.push(obj1)
+            nowDate = DateHelper.GetPrevMonday(nowDate)
+        }
+ 
+        //刷新
+        btnToolBarRefresh()
+    })
+
+    function InitTable(table){
+        var dbGrid = table.render({
+            elem: '#table1'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,height: 'full-10'
+            ,url:""
+            ,id:"dbGrid"
+            ,toolbar: '#toolbarDemo'
+            ,cols: [[
+               {type:'numbers',  title: '序号'}
+              ,{field:'_id',  title: '_id',hide:true}
+              ,{field:'周日期', width:280, title: '时间',templet: '#TplRowCode'}
+              ,{field:'合计工时', width:150, title: '合计工时'}
+            ]]
+        });
+         //监听头工具栏事件
+        table.on('toolbar(dbGrid)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id)
+            ,data = checkStatus.data; //获取选中的数据
+            switch(obj.event){
+                case 'refresh':
+                    btnToolBarRefresh()    //刷新
+                    break
+            };
+        });
+    }
+
+
+</script>
+
+<script>
+    //刷新
+    function btnToolBarRefresh(){
+        model.get(weekDescArr,function(res) {
+            if (res.state) {
+                var table = layui.table
+                table.reload('dbGrid', {
+                    data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
+                });
+            }
+        });
+    }
+    
+    //选择工时代码 
+    function btnRowCode(obj){
+        $("#contentFrame", window.parent.document).attr("src","manhourrecord.html?week="+$(obj).attr('row-id'))
+    }
+</script>
+ 
+</html>

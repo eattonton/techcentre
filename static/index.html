@@ -28,7 +28,7 @@
           <dd><a href="">安全设置</a></dd>
         </dl>
       </li>
-      <li class="layui-nav-item"><a href="">退了</a></li>
+      <li class="layui-nav-item"><a href="" onclick="config.logout()">退了</a></li>
     </ul>
   </div>
   
@@ -44,7 +44,7 @@
   
   <div class="layui-footer">
     <!-- 底部固定区域 -->
-    © layui.com - 底部固定区域
+    Copyright© triweb.cn All Rights Reserved 版权所有
   </div>
 </div>
 
@@ -75,7 +75,7 @@ function LoadTree(){
 
     //模拟数据
     var data = [{title: '工时管理',id: 200,spread:true,
-            children: [{title: '工时登记',id: 201}]
+            children: [{title: '工时登记',id: 201},{title: '工时列表',id: 202},{title: '工时统计',id: 203}]
         }
         ,{title: '用户管理',id: 100,spread:true,
             children: [{title: '用户',id: 101},{title: '工作项管理',id: 102}]
@@ -96,7 +96,11 @@ function LoadTree(){
             $("#contentFrame").attr("src", "projectlist.html?tt=" + config.version)
         }else if(sid == 201){
             $("#contentFrame").attr("src", "manhourrecord.html?tt=" + config.version)
-        } 
+        }else if(sid == 202){
+            $("#contentFrame").attr("src", "timerecordlist.html?tt=" + config.version)
+        }else if(sid == 203){
+            $("#contentFrame").attr("src", "manhourtotal.html?tt=" + config.version)
+        }  
        
     }
   });
