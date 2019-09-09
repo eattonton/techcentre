@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>舟山中远海运重工--技术中心--工时统计</title>
+    <link rel="stylesheet" href="js/layui-v2.5.4/layui/css/layui.css">
+    <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="js/ajax.js"></script>
+    <script src="js/layui-v2.5.4/layui/layui.js"></script>
+
+    <script src="config/config.js"></script>
+    <script src="config/mylayuitable.js"></script>
+    <script src="config/datehelper.js"></script>
+</head>
+<body style="padding:0px;margin-top:-10px;"> 
+   <script type="text/html" id="toolbarDemo">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <a class="layui-btn layui-btn-xs" lay-event="refresh">刷新</a>
+            </div>
+            <div class="layui-inline">
+                <label class="layui-form-label" style="width:120px;margin-left:-50px;">日期范围</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input" id="testDate" placeholder="" readonly/>
+                </div>
+            </div>
+        </div>
+   </script>
+    <div>
+        <table class="layui-hide" id="table1" lay-filter="dbGrid"></table>
+    </div>
+
+    <script type="text/html" id="TplRowCode">
+        <input type="button" name="code" value="{{d.周日期}}" row-id="{{d.周日期}}" class="layui-btn layui-btn-primary" 
+            style=" background-color:Transparent; border-style: none; outline: none;width:100%;color:#0000ff;" 
+            lay-text="" lay-filter="codeBtn" onclick="btnRowCode(this)"/>
+    </script>
+ 
+</body>
+<!--用户检测-->
+<script>
+  var User={}
+  config.userCheck(function(user) {
+        User = user
+        $('#user').text(User["姓名"])
+  })
+</script>
+<script type="text/javascript">
+    var model = {
+        run: function(call, url, param, callback) {
+            call(url, param, function(res) {
+                !res.state && layer.msg(res.data);
+                res.state && callback && callback(res);
+            })
+        },
+        get: function(param, callback) {
+            model.run(AJAX.get, "/tc/projlist/getWithTimeRecord", param, callback);
+        }
+        ,getDict: function(param, callback) {
+            model.run(AJAX.get, "/tc/diction/get", param, callback)
+        }
+    }
+</script>
+<script type="text/javascript">
+    var numWeek =10   //显示十个星期的 
+    var weekDescArr = []  //周日期 描述列表
+    var selDateStr = ""    //选择的日期
+    var startDateStr = ""
+    var endDateStr = ""
+</script>
+<script>
+    //JavaScript代码区域
+    layui.use(['element','table','form','layer','laydate'], function(){
+        var element = layui.element
+        ,table = layui.table
+        ,form = layui.form
+        ,layer = layui.layer
+        ,laydate = layui.laydate
+
+        var title1 = GetTableTitle()
+        InitTable(table,title1)
+
+        let nowDate = new Date()
+        nowDate =DateHelper.GetCurMonday(nowDate)
+        for(let i=0;i<=numWeek;i++){
+            let str1 = DateHelper.GetOneWeekStr(nowDate)
+            let obj1 = {}
+            obj1["周日期"] = str1
+            obj1["登记人"] = User.英文名
+            weekDescArr.push(obj1)
+            nowDate = DateHelper.GetPrevMonday(nowDate)
+        }
+ 
+        //日期范围
+        InitDate()
+
+        //刷新
+       // btnToolBarRefresh()
+    })
+
+    function InitTable(table,title1=[]){
+        var dbGrid = table.render({
+            elem: '#table1'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,height: 'full-10'
+            ,url:""
+            ,id:"dbGrid"
+            ,toolbar: '#toolbarDemo'
+            ,page:true
+            ,data:[]
+            ,limit:30
+            ,cols: [title1]
+        });
+
+
+         //监听头工具栏事件
+        table.on('toolbar(dbGrid)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id)
+            ,data = checkStatus.data; //获取选中的数据
+            switch(obj.event){
+                case 'refresh':
+                    btnToolBarRefresh()    //刷新
+                    break
+            };
+        });
+    }
+
+    //加载日期控件
+    function InitDate(){
+        var laydate = layui.laydate
+        console.log(selDateStr)
+        var dateRange = laydate.render({
+            elem: '#testDate'
+            ,trigger: 'click'
+            ,range:true
+            ,value:selDateStr
+            ,done: function(value, startDate, endDate){
+                //console.log('你选择的日期是：' + value + '<br>获得的对象是' + JSON.stringify(date));
+                //console.log(dateRange.config)
+                selDateStr = value
+                console.log(value)
+                ChangeDate(startDate, endDate)
+            }
+            
+        });
+    }
+
+    //当日期变化时
+    function ChangeDate(startDate, endDate){
+        var table = layui.table
+        ,laydate = layui.laydate
+
+        var title1 = GetTableTitle(startDate, endDate)
+        
+        table.reload('dbGrid', {
+            cols: [title1]            //调用table.reload 重新渲染显示加载追加了数据的表格
+        })
+ 
+        //刷新
+        btnToolBarRefresh()
+
+    }
+
+    function GetTableTitle(startDate, endDate){
+        var title1 = []
+        title1[0] = {type:'numbers',  title: '序号'}
+        title1[1] = {field:'_id',  title: '_id',hide:true}
+        title1[2] = {field:'任务id',  title: '任务id',hide:true}
+        title1[3] = {field:'工号', width:80, title: '工号'}
+        title1[4] = {field:'姓名', width:100, title: '姓名'}
+        title1[5] = {field:'船号', width:80, title: '船号', sort: true}
+        title1[6] = {field:'工作任务', width:300, title: '工作任务'}
+        title1[7] = {field:'工时代码', width:70, title: '代码'}
+        title1[8] = {field:'合计工时', width:70, title: '合计'}
+        if(startDate && endDate){
+            var titleArr = DateHelper.GetDateList(startDate, endDate)
+            //console.log(titleArr)
+            startDateStr = titleArr[0]["1"]
+            endDateStr = titleArr[titleArr.length-1]["1"]
+            console.log(startDateStr)
+            console.log(endDateStr)
+            $.each(titleArr,function(i,v){
+                title1.push({field:v["1"], width:80, title:v["2"]})
+            })
+            
+        }
+        
+        return title1
+    }
+ 
+</script>
+
+<script>
+    //刷新
+    function btnToolBarRefresh(){
+        let sfilter = {'日期': {'$gte': startDateStr, '$lt': endDateStr}}
+
+        model.get({'filter':sfilter},function(res) {
+            if (res.state) {
+                var table = layui.table
+                table.reload('dbGrid', {
+                    data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
+                });
+ 
+                //laydate bug ajax之后需要重新渲染
+                InitDate()
+            }
+        });
+    }
+    
+    //选择工时代码 
+    function btnRowCode(obj){
+        $("#contentFrame", window.parent.document).attr("src","manhourrecord.html?week="+$(obj).attr('row-id'))
+    }
+
+
+</script>
+ 
+</html>

@@ -39,17 +39,57 @@ MyTable.UpdateRowData = function(row, data){
     return data
 }
 
+MyTable.UpdateRowDataByID = function(stableName,newData){
+    var table = layui.table
+    var data = table.cache[stableName]
+ 
+    for (var i = data.length - 1; i >= 0; i--) {
+        if(data[i]["_id"] == newData["_id"]){
+             for(var k in newData){
+                if(k == "_id") continue;
+                //if(data[i].hasOwnProperty(k)){
+                    data[i][k] = newData[k]
+                //}
+             }
+        }
+    }
+    // console.log(data)
+    table.reload(stableName,{data: data})
+
+    return data
+}
+
+MyTable.UpdateRowDataByID2 = function(stableName,id2, newData){
+    var table = layui.table
+    var data = table.cache[stableName]
+ 
+    for (var i = data.length - 1; i >= 0; i--) {
+        if(data[i]["_id"] == id2){
+             for(var k in newData){
+                if(k == "_id2") continue;
+                //if(data[i].hasOwnProperty(k)){
+                    data[i][k] = newData[k]
+                //}
+             }
+        }
+    }
+    //console.log(data)
+    table.reload(stableName,{data: data})
+
+    return data
+}
+
 MyTable.UpdateRowDataByChecked = function(stableName,newData){
     var table = layui.table
     var data = table.cache[stableName]
-
+ 
     for (var i = data.length - 1; i >= 0; i--) {
         if(data[i].LAY_CHECKED){
              for(var k in newData){
                 if(k == "_id") continue;
-                if(data[i].hasOwnProperty(k)){
+                //if(data[i].hasOwnProperty(k)){
                     data[i][k] = newData[k]
-                }
+               // }
              }
         }
     }

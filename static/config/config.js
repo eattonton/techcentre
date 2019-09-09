@@ -31,6 +31,11 @@ config.localParamGet = function (key, exp) {
 config.delQualityUser = function () {
     localStorage.removeItem(config.storageName);
 }
+//登出
+config.logout =function(){
+    localStorage.removeItem(config.storageName);
+    location.href = './userlogin.html'
+}
 //用户有效性检查
 config.userValid = function (name, password, cb) {
     var user = {'name': name, 'pass': password};

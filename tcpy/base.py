@@ -37,10 +37,10 @@ class BaseControl(object):
 
     def nolockCall(self, cb, *args, **kwargs):
         res = None
-        try:
-            res = cb(*args, **kwargs)
-        except Exception as e:
-            res = "操作失败",False 
+        #try:
+        res = cb(*args, **kwargs)
+        #except Exception as e:
+        #res = "操作失败",False 
         return res
 
     # 获取数据表的ID

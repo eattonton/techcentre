@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 sys.path.append('./tcpy')
+sys.path.append('../')
 import multiprocessing
 import json
 import pymongo
@@ -14,48 +15,17 @@ import datetime
 class RecordItem(BaseControl):
     def __init__(self):
         BaseControl.__init__(self)
-        self.table = self.db.RecordItemtb
-        self.projlisttabel = projectlist.ProjList()
-
+        self.table = self.db.TimeItemtb
+ 
     def html(self, request, fun1=''):
         return BaseControl.html(self, request, fun1)
-
-    def get(self, sfilter={}):
-        arr1 = []
-        items = self.table.find(sfilter).sort("_id", pymongo.ASCENDING)
-        projID={}
-        i=0
-        for item in items:
-            arr1.append(item)
-            sidx =item["任务id"]
-            if sidx in projID:
-                projID[sidx].append(i)
-            else:
-                projID[sidx] = [i]
-            i=i+1
-        arr2=[]
-        for k in projID:
-            newObj={}
-            projItem = self.projlisttabel.get({"filter":{"_id":k}})
-            if len(projItem) > 0:
-                newObj["工时代码"]=projItem[0]["工时代码"]
-                newObj["船号"]=projItem[0]["船号"]
-                newObj["工作任务"]=projItem[0]["工作任务"]
-                newObj["任务id"]=projItem[0]["_id"]
-                newObj["_id"] = newObj["任务id"]
-                arr3 = projID[k]
-                for idx in arr3:
-                    newObj[arr1[idx]["日期"]]=arr1[idx]["工时"]
-                arr2.append(newObj)
-        return arr2
-
+ 
     # 插入单个实例数据
     def insert(self, item={}):
         if len(item) == 0:
             return None
         filter1 = {}
-        filter1["任务id"] = item.get("任务id",0)
-        filter1["日期"] = item.get("日期","1970-1-1")
+        filter1["_id"] = item.get("_id",0)
         obj1 = self.table.find_one(filter1)
         if obj1 is not None:
             self.table.update({'_id': obj1["_id"]}, {'$set': item}, multi=False)
@@ -90,6 +60,17 @@ class RecordItem(BaseControl):
                 return obj1
         return None
 
+    def deleteByTask(self, taskID):
+        self.table.delete_many({'任务id': taskID})
+
+    def updateByTask(self,item):
+        obj1 = self.table.find_one({'任务id': item.get("任务id",0),"日期":item.get("日期","")})
+        if obj1 is not None:
+            #如果存在 就更新
+            self.table.update({'_id': obj1["_id"]}, {'$set': item}, multi=False)
+        else:
+            self.insert(item)
+
     def verify_date_str_lawyer(self,datetime_str):
         try:        
             datetime.datetime.strptime(datetime_str, '%Y-%m-%d')        
@@ -97,9 +78,38 @@ class RecordItem(BaseControl):
         except ValueError:        
             return False
 
+    def getSumWeeks(self,items):
+        items2 = []
+        for item in items:
+            item2 = self.getSumWeek(item)
+            items2.append(item2)
+        return items2
+
+    def getSumWeek(self,sfilter):
+        items = self.get({"filter":sfilter})
+        value1 = 0
+        for item in items:
+            value1 = value1 + item.get("工时",0)
+        item2 = {}
+        item2["合计工时"] = value1
+        item2["周日期"] = sfilter.get("周日期","")
+        return item2
+
+    def getTaskIds(self,sfilter):
+        items = self.table.find(sfilter).distinct("任务id")
+        #items = self.table.find(sfilter)
+        #return items
+        return [cell for cell in items]
+
+    def getTimeRecordIds(self,sfilter):
+        items = self.table.find(sfilter).distinct("_id")
+        #items = self.table.find(sfilter)
+        #return items
+        return [cell for cell in items]
+
 if __name__ == '__main__':
     mdb = RecordItem()
     #item ={"2019-07-17":8,"2019-07-18":8,"任务id":2}
-    res = mdb.get()
+    res = mdb.getTimeRecordIds({"日期":{"$gte":"2019-08-07","$lte":"2019-08-08"}})
     #res = mdb.get({'职务': {'$in':['检验员','项目主管','管理员']}})
     print(res)

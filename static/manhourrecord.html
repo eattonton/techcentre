@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>舟山中远海运重工--技术中心</title>
+    <title>舟山中远海运重工--技术中心--工时登记</title>
     <link rel="stylesheet" href="js/layui-v2.5.4/layui/css/layui.css">
     <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="js/ajax.js"></script>
@@ -11,6 +11,7 @@
 
     <script src="config/config.js"></script>
     <script src="config/mylayuitable.js"></script>
+    <script src="config/datehelper.js"></script>
     <style type="text/css">
          /*layui-table 表格内容允许换行*/
         .layui-table-cell{
@@ -19,6 +20,17 @@
             text-overflow:inherit;
             white-space:normal;
         }
+ 
+        .layui-table-cell {
+            overflow: visible !important;
+        }
+         .layui-table-box {
+             overflow: visible;
+         }
+         .layui-table-body {
+             overflow: visible;
+         }
+ 
     </style>
 </head>
 <body style="padding:0px;margin-top:-10px;"> 
@@ -26,7 +38,8 @@
         <div class="layui-form-item">
             <div class="layui-inline">
                 <a class="layui-btn layui-btn-xs" lay-event="refresh">刷新</a>
-                <a class="layui-btn layui-btn-xs" lay-event="add">添加</a>
+                <a class="layui-btn layui-btn-xs" lay-event="add" style="display: none;">选择</a>
+                <a class="layui-btn layui-btn-xs" lay-event="addrow">添加</a>
                 <a class="layui-btn layui-btn-xs" lay-event="save">保存</a>
                 <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
             </div>
@@ -44,65 +57,49 @@
     <div>
         <table class="layui-hide" id="table1" lay-filter="dbGrid"></table>
     </div>
-    
-    <div id="dlg" style="display:none;margin-left:-25px;margin-right:25px">
-        <form class="layui-form" action="" lay-filter="myform" id="myform" method="get">
-            <div class="layui-form-item">
-                <label class="layui-form-label">工时代码</label>
-                <div class="layui-input-block">
-                    <select id="工时代码" name="工时代码" lay-filter="工时代码" required lay-verify="required">
-                     <option value=""></option>
-                    </select>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">船号</label>
-                <div class="layui-input-block">
-                    <select id="船号" name="船号" lay-filter="船号">
-                     <option value=""></option>
-                    </select>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">科室</label>
-                <div class="layui-input-block">
-                    <select id="科室" name="科室" lay-filter="科室">
-                     <option value=""></option>
-                    </select>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">专业</label>
-                <div class="layui-input-block">
-                  <select id="专业" name="专业" lay-filter="专业">
-                     <option value=""></option>
-                  </select>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">预估工时</label>
-                <div class="layui-input-block">
-                    <input type="text" name="预估工时" class="layui-input" lay-verify="number"/>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">工作任务</label>
-                <div class="layui-input-block">
-                    <input type="text" name="工作任务" class="layui-input"/>
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <div class="layui-input-block" style="float:right">
-                    <button class="layui-btn" lay-submit="" lay-filter="demo1">保存</button>
-                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-                </div>
-            </div>
-        </form>
-    </div>
 
     <div id="dlg2" style="display:none;margin-top:-10px;">
         <table class="layui-hide" id="table2" lay-filter="dbGrid2"></table>
     </div>
+
+    <div id="dlg3" style="display:none;margin-top:-10px;">
+        <table class="layui-hide" id="table3" lay-filter="dbGrid3"></table>
+    </div>
+
+    <script type="text/html" id="TplRowCode">
+        <div style="margin-left:-15px;margin-right:-15px;margin-top:-20px;margin-bottom:-20px;padding:0px;">
+        <input type="button" name="code" value="{{d.工时代码}}" row-id="{{d._id}}" class="layui-btn layui-btn-primary" 
+            style=" background-color: Transparent; border-style: none; outline: none;width:100%;" 
+            lay-text="" lay-filter="codeBtn" onclick="btnRowCode(this)"/>
+        </div>
+    </script>
+
+    <script type="text/html" id="TplRowShip" >    
+        <div style="margin-left:-15px;margin-right:-15px;margin-top:-10px;margin-bottom:-10px;padding:0px;">
+            <input type="text" name="txtShip" lay-filter="txtShip" class="layui-input" 
+                    style="position:absolute;z-index:2;width:80%;border-style:none;" 
+                    value="{{d.船号}}" row-id="{{d._id}}" onChange="editDbGridRowShipInput(this)" autocomplete="off">
+            <select type="text" lay-filter="selShip" autocomplete="off" class="layui-select"  >
+                {{# layui.each(d.ShipList, function(index, item){ }}
+                    <option value='{{item["1"]}}'>{{item["1"] + " " +item["2"]}}</option>
+                {{#});}}
+            </select>
+        </div>
+    </script>
+
+    <script type="text/html" id="TplRowContent" >    
+        <div style="margin-left:-15px;margin-right:-15px;margin-top:-10px;margin-bottom:-10px;padding:0px;">
+            <input type="text" name="HandoverCompany" lay-filter="HandoverCompany" class="layui-input" 
+                    style="position:absolute;z-index:2;width:90%;border-style:none;" 
+                    value="{{d.工作任务}}" row-id="{{d._id}}" onChange="editDbGridRowWorkInput(this)" autocomplete="off">
+            <select type="text" lay-filter="hc_select" autocomplete="off" class="layui-select"  >
+                {{# layui.each(d.SelList, function(index, item){ }}
+                    <option value='{{item.v}}'>{{item.t}}</option>
+                {{#});}}
+            </select>
+        </div>
+    </script>
+ 
 </body>
 <!--用户检测-->
 <script>
@@ -119,36 +116,51 @@
                 !res.state && layer.msg(res.data);
                 res.state && callback && callback(res);
             })
-        },
-        getProjList: function(param, callback) {
+        }
+        ,getProjList: function(param, callback) {
             model.run(AJAX.get, "/tc/projlist/get", param, callback);
-        },
-        get:function(param, callback){
-            model.run(AJAX.get, "/tc/recorditem/get", param, callback);
-        },
-        update:function(param, callback){
-            model.run(AJAX.post, "/tc/recorditem/update", param, callback);
-        },
-        insert:function(param, callback){
+        }
+        ,get:function(param, callback){
+            model.run(AJAX.get, "/tc/projlist/get", param, callback);
+        }
+        ,update:function(param, callback){
+            model.run(AJAX.post, "/tc/projlist/update", param, callback);
+        }
+        ,updateBat:function(param, callback){
+            model.run(AJAX.post, "/tc/projlist/updateBath", param, callback);
+        }
+        ,insert:function(param, callback){
             model.run(AJAX.post, "/tc/recorditem/insert", param, callback);
-        },
-        insertBat:function(param, callback){
-            model.run(AJAX.post, "/tc/recorditem/insertBath", param, callback);
-        },
-        remove:function(param, callback){
-            model.run(AJAX.get, "/tc/recorditem/delete", param, callback);
-        },
-        getDict: function(param, callback) {
+        }
+        ,insertBat:function(param, callback){
+            model.run(AJAX.post, "/tc/projlist/insertBath", param, callback);
+        }
+        ,remove:function(param, callback){
+            model.run(AJAX.get, "/tc/projlist/delete", param, callback);
+        }
+        ,getDict: function(param, callback) {
             model.run(AJAX.get, "/tc/diction/get", param, callback)
         }
+       
     }
 </script>
-<script>
+<script type="text/javascript">
+    //全局变量
     var objEditId =0   //如果为 0 表示需要新增加，如果有值 那就需要编辑
     var dlg2Index    //弹窗的序号，用于关闭
     var oneWeekDesc   //一周的日期描述 2019-07-15_2019-07-21
     var updateDataArr = []  //变更上传的数据
+    var insertDataArr = []    //需要插入的
+    var insertRow = {}     //插入的行,当前插入的只能一行
     var selDateStr = ""    //选择的日期
+    var objRowWorkDict = {}  //用于选择的工作任务提示
+    var objRowShipDict = []  //船号 清单
+    var nowId = 0   //当选择行操作时
+    var totalInsertID = 0   //临时插入行的id值
+</script>
+<!--初始化-->
+<script>
+
     //JavaScript代码区域
     layui.use(['element','table','form','layer','laydate'], function(){
         var element = layui.element
@@ -158,23 +170,33 @@
         ,laydate = layui.laydate
         //初始化 日期
         //常规用法
-        var nowDate = new Date()
-        selDateStr =nowDate.Format("Y-MM-dd")
-        InitDate()
-
+        var paramWeek = config.getQueryStringByName("week")
+        //console.log(paramWeek)
+        if(paramWeek != ""){
+            oneWeekDesc = paramWeek
+            selDateStr = oneWeekDesc.split("_")[0]
+        }else{
+            var nowDate = new Date()
+            selDateStr =nowDate.Format("Y-MM-dd")
+            InitDate()
+        }
+ 
         //首先加载的是今天的
-        var title1 = GetTableTitle()
+        var title1 = GetTableTitle(selDateStr)
         InitTable(table, title1)
         InitTable2(table)
+        InitTable3(table)
         //设置为单选
-        MyTable.TableSingleSelect("dbGrid")
+        //MyTable.TableSingleSelect("dbGrid")
         //init dlg
-        InitForm(form)
+        //InitForm(form)
+        //加载初始化
+        LoadDictFromWeb(btnToolBarRefresh)
         //刷新
-        btnToolBarRefresh()
+        //btnToolBarRefresh()
+
     })
-
-
+ 
     function GetTableTitle(sdate=""){
         var nowDay = null
         if(sdate==""){
@@ -187,11 +209,11 @@
         title1[0] = {type:'numbers',  title: '序号'}
         title1[1] = {type: 'checkbox'}
         title1[2] = {field:'_id',  title: '_id',hide:true}
-        title1[2] = {field:'任务id',  title: '任务id',hide:true}
-        title1[3] = {field:'工时代码', width:100, title: '工时代码',totalRowText: '合计'}
-        title1[4] = {field:'船号', width:80, title: '船号', sort: true}
-        title1[5] = {field:'工作任务', width:300, title: '工作任务'}
-        var titleArr = GetOneWeek(nowDay)
+        title1[3] = {field:'任务id',  title: '任务id',hide:true}
+        title1[4] = {field:'工时代码', width:100, title: '工时代码',templet: '#TplRowCode'}
+        title1[5] = {field:'船号', width:120, title: '船号',templet: '#TplRowShip'}
+        title1[6] = {field:'工作任务', width:300, title: '工作任务',totalRowText: '合计',templet: '#TplRowContent'}
+        var titleArr = DateHelper.GetOneWeek(nowDay)
          
         $.each(titleArr,function(i,v){
             title1.push({field:v["3"], width:80, title: v["1"]+"  "+v["2"],edit: 'text',totalRow: true})
@@ -202,12 +224,13 @@
         }else{
             nowDay = new Date(sdate)
         }
-        oneWeekDesc = GetOneWeekStr(nowDay)
-        console.log(oneWeekDesc)
+        oneWeekDesc = DateHelper.GetOneWeekStr(nowDay)
         return title1
     }
-
+ 
     function InitTable(table,title1=[]){
+        var form = layui.form
+
         var dbGrid = table.render({
             elem: '#table1'
             ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
@@ -217,6 +240,10 @@
             ,totalRow: true
             ,toolbar: '#toolbarDemo'
             ,cols: [title1]
+            ,done: function(res, curr, count){
+ 
+            }
+ 
         });
          //监听头工具栏事件
         table.on('toolbar(dbGrid)', function(obj){
@@ -235,23 +262,26 @@
                 case 'delete':
                     btnToolBarDel(data)
                     break;
+                case 'addrow':
+                    btnToolBarAddRow()
+                    break;
             };
         });
 
         //监听行编辑
         //监听单元格编辑
         table.on('edit(dbGrid)', function(obj){
-            var value = obj.value //得到修改后的值
-            ,data = obj.data //得到所在行所有键值
-            ,field = obj.field; //得到字段
-            var newObj = {}
-            newObj["任务id"] = data.任务id
-            newObj["工时"] = parseFloat(value) || 0
-            newObj["日期"] = field
-            newObj["周日期"] = oneWeekDesc
-            console.log(newObj)
-            updateDataArr.push(newObj)
+            editDbGridRowTime(obj)
         })
+ 
+        //监听 工作任务 选择事件
+        form.on('select(hc_select)', function (data) {   //选择移交单位 赋值给input框
+            editDbGridRowWorkSel(data)
+        })
+
+        form.on('select(selShip)', function (data) {   //选择移交单位 赋值给input框
+            editDbGridRowShipSel(data)
+        });
     }
 
     function InitTable2(table){
@@ -285,42 +315,34 @@
         });
     }
 
-    function InitForm(form){
-        //监听提交
-        form.on('submit(demo1)', btnSave);
-
-        //加载配置
-        model.getDict({},function(res) {
-            $.each(res.data.设计工时代码,function(i,v){
-                $("#工时代码").append("<option value='" + v["1"] + "' data-desc='"+v["3"]+"'>" + v["1"]+","+v["2"] + "</option>")
-            })
-            $.each(res.data.项目,function(i,v){
-                $("#船号").append("<option value='" + v["1"] + "'>" + v["1"]+","+v["2"] + "</option>")
-            })
-            $.each(res.data.技术中心科室,function(i,v){
-                $("#科室").append("<option value='" + v + "'>" + v + "</option>")
-            })
-            $.each(res.data.专业,function(i,v){
-                $("#专业").append("<option value='" + v + "'>" + v + "</option>")
-            })
-            
-            //select 之后必须执行，不然不显示
-            form.render("select")
-        })
-
-        form.on('select(工时代码)', function(data){
-            //获取当前选中下拉项的索引
-            var indexGID = data.elem.selectedIndex
-            //获取当前选中下拉项的自定义属性值 title
-            var sDesc = $(data.elem[indexGID]).attr("data-desc")
-            //小tips
-            layer.tips(sDesc, '#dlg', {
-                tips: [1, '#3595CC'],
-                time: 2000
-            });
-        })
+    function InitTable3(table){
+        var dbGrid3 = table.render({
+            elem: '#table3'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,url:""
+            ,id:"dbGrid3"
+            ,height:'full'
+            ,cols: [[
+               {field:'_id',  title: '_id',hide:true}
+              ,{field:'1', width:100, title: '工时代码'}
+              ,{field:'2', width:200, title: '工时描述'}
+              ,{field:'3', width:500, title: '工时说明'}
+              ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width:80}
+            ]]
+        });
+         //监听头工具栏事件
+        table.on('tool(dbGrid3)', function(obj){
+            var data = obj.data;
+            //console.log(obj)
+            switch(obj.event){
+                case 'sel':
+                    SelectOneRowDlg3(data)
+                    break
+                
+            };
+        });
     }
-
+ 
     //加载日期控件
     function InitDate(){
         var laydate = layui.laydate
@@ -352,172 +374,425 @@
         btnToolBarRefresh()
     }
 
-</script>
+    function LoadDictFromWeb(cb){
+        var table = layui.table
 
-<!--日期函数-->
-<script>
-    //计算 某天开始的一周
-    function GetOneWeek(nowDate){
-        var res = []
-        var weekday = []
-        weekday[0] = "星期日"
-        weekday[1] = "星期一"
-        weekday[2] = "星期二"
-        weekday[3] = "星期三"
-        weekday[4] = "星期四"
-        weekday[5] = "星期五"
-        weekday[6] = "星期六"
-     
-        //移到星期一
-        nowDate.setDate(nowDate.getDate() - nowDate.getDay() +1)
-        //var oneDay = nowDate.getDay()
-        for(var i=1;i<=7;i++){
-            res.push({"1":weekday[nowDate.getDay()],"2":nowDate.Format("M月d"),"3":nowDate.Format("Y-MM-dd")}) 
-            nowDate.setDate(nowDate.getDate() +1)
-        }
+        model.getDict({},function(res) {
+           // console.log(res.data["设计工时代码"])
+            if (res.state) {
+                objRowWorkDict = res.data["工作任务提示"]
+                objRowShipDict = res.data["项目"]
+                table.reload('dbGrid3', {
+                    page:false
+                    ,limit:res.data["设计工时代码"].length
+                    ,data: res.data["设计工时代码"] // 调用table.reload 重新渲染显示加载追加了数据的表格
+                });
 
-        return res
-    }
-
-    function GetOneWeekStr(nowDate){
-        var res = []
-        //移到星期一
-        nowDate.setDate(nowDate.getDate() - nowDate.getDay() +1)
-        var str1 = nowDate.Format("Y-MM-dd")
-        //计算礼拜天
-        var date2 = new Date(str1)
-        date2.setDate(date2.getDate()+6)
-        var str2 = date2.Format("Y-MM-dd")
-
-        return str1+"_"+str2
+                typeof cb == 'function' && cb(res)
+            }
+        })
     }
 </script>
-<script>
-//选择项后添加 到 编辑行
-function SelectOneRowDlg2(selData){
-    layer.close(dlg2Index)
-
-    var table = layui.table
-    //更新行
-    var nowData = MyTable.GetRowsData("dbGrid")
-    var newObj1= {}
-    newObj1["任务id"]=selData["_id"]
-    newObj1["工时代码"]=selData["工时代码"]
-    newObj1["船号"]=selData["船号"]
-    newObj1["工作任务"]=selData["工作任务"]
-    nowData.data.push(newObj1)
-    table.reload("dbGrid",{data: nowData.data})
-}
-
-//刷新
-function btnToolBarRefresh(){
-    var table = layui.table
-    ,laydate = layui.laydate
-
-    model.get({"周日期":oneWeekDesc},function(res) {
-        if (res.state) {
-            table.reload('dbGrid', {
-                data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
-            });
-        }
-        //laydate bug ajax之后需要重新渲染
-        InitDate()
-
-    });
-
-    model.getProjList({},function(res) {
-        if (res.state) {
-            table.reload('dbGrid2', {
-                data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
-            });
-        }
-    });
-}
-
-//添加
-function btnToolBarAdd(){
-    //layer.msg('添加');
-    objEditId = 0
-    $('#myform')[0].reset()
-　　layui.form.render()
-    showDialog()
-}
-
-//工具条中的保存
-function btnToolBarSave(){
-    model.insertBat(updateDataArr,function(res){
-        if(res.state){
-            layer.msg('保存成功')
+<!--行编辑-->
+<script type="text/javascript">
+    //*  行编辑及数据处理  */
+    //输入工时的处理函数
+    function editDbGridRowTime(obj){
+        var value = obj.value //得到修改后的值
+        ,row = obj.data //得到所在行所有键值
+        ,field = obj.field; //得到字段
+        var newObj = {}
+        //newObj["任务id"] = data.任务id || -1
+        newObj["工时"] = parseFloat(value) || 0
+        newObj["日期"] = field
+        newObj["周日期"] = oneWeekDesc
+        //console.log(row)
+        //console.log(newObj)
+        if(row["_id"] > 0){
+            doneUpdateDataArr(row,field,value)
         }else{
-            layer.msg('保存失败')
+            doneInsertDataArr(row,field,value)
+        }
+        
+    }
+
+    function doneUpdateDataArr(row,field,value){
+        updateRowDataArr(row,field,value,updateDataArr)
+        console.log(updateDataArr)
+    }
+
+    function doneInsertDataArr(row,field,value){
+        updateRowDataArr(row,field,value,insertDataArr)
+        console.log(insertDataArr)
+    }
+
+    //处理工时修改的时候 更新 需要处理的数组
+    function updateRowDataArr(row,field,value,arrData){
+        //先判断是否存在
+        let bExist = false
+        let idx=-1
+
+        for(let i=0,n=arrData.length;i<n;i++){
+            let item0 = arrData[i]
+            if(item0["_id"] == row["_id"]){
+                bExist = true
+                idx = i
+                break
+            }
         }
 
-    }) 
-}
- 
-function showDialog(title="选择工作内容"){
-    dlg2Index = layer.open({
-        type: 1,
-        closeBtn: 1,
-        shift: 2,
-        shadeClose: true,
-        content: $("#dlg2"),
-        title: title,
-        fixed:false,
-        top:10,
-        area: ['834px', '460px']
-    });
-}
+        if(bExist){
+            //如果存在
+            let item1 = arrData[idx]
+            item1["工时代码"] = row["工时代码"]
+            item1["船号"] = row["船号"]
+            item1["工作任务"] = row["工作任务"]
+            if(!("日期工时s" in item1)){
+                item1["日期工时s"] = []
+            }
+            //判断对应的工时是否填写
+            let idx2 = -1
+            item1["日期工时s"].forEach((obj1,index)=>{
+                if(field in obj1){
+                    idx2 = index
+                }
+            })
+            if(idx2 == -1){
+                let obj2 = {}
+                obj2[field] = parseFloat(value) || 0
+                item1["日期工时s"].push(obj2)
+            }else{
+                item1["日期工时s"][idx2][field] = parseFloat(value) || 0
+            }
+        }else{
+            //不存在
+            let newObj = {}
+            newObj["_id"] = row["_id"]
+            newObj["工时代码"] = row["工时代码"]
+            newObj["船号"] = row["船号"]
+            newObj["工作任务"] = row["工作任务"]
+            let obj2 = {}
+            obj2[field] = parseFloat(value) || 0
+            newObj["日期工时s"] = [obj2]
+            newObj["周日期"] = oneWeekDesc
+            newObj["登记人"] = User.英文名
+            arrData.push(newObj)
+        }
+    }
+    //编写工作任务时
+    //通过选择框输入
+    function editDbGridRowWorkSel(data){
+        //console.log(data)
+        let id = $(data.elem).prev().attr("row-id")
+        let id2 = parseInt(id)
+        editDbGridRowWork(id2,data.value)
+    }
+    //通过输入框
+    function editDbGridRowWorkInput(obj){
+        //console.log(obj)
+        let id = parseInt($(obj).attr("row-id"))
+        editDbGridRowWork(id,$(obj).val())
+    }
 
-//保存 from submit
-function btnSave(data){
-    var table = layui.table
-    if(objEditId == 0){
-        //添加
-        model.insert(data.field, function(res){
+    function editDbGridRowWork(id,value){
+        var newData = {}
+        newData["_id"] = id  //选择是的id
+        newData["工作任务"] = value
+        
+        MyTable.UpdateRowDataByID("dbGrid",newData)
+        if(id <= 0){
+            updateRowDataArr2(newData,insertDataArr)
+        }else{
+            updateRowDataArr2(newData,updateDataArr)
+        }
+    }
+
+    //编写船号时
+    //通过选择框输入
+    function editDbGridRowShipSel(data){
+        //console.log(data)
+        let id = $(data.elem).prev().attr("row-id")
+        let id2 = parseInt(id)
+        editDbGridRowShip(id2,data.value)
+    }
+    //通过输入框
+    function editDbGridRowShipInput(obj){
+        //console.log(obj)
+        let id = parseInt($(obj).attr("row-id"))
+        editDbGridRowShip(id,$(obj).val())
+    }
+
+    function editDbGridRowShip(id,value){
+        var newData = {}
+        newData["_id"] = id  //选择是的id
+        newData["船号"] = value
+        
+        MyTable.UpdateRowDataByID("dbGrid",newData)
+        if(id <= 0){
+            updateRowDataArr2(newData,insertDataArr)
+        }else{
+            updateRowDataArr2(newData,updateDataArr)
+        }
+    }
+
+    //更新 需要保存的 工时代号，船号，工作任务
+    function updateRowDataArr2(newData, arrData){
+        let idx = -1
+        for(let i=0,n=arrData.length;i<n;i++){
+            if(newData["_id"] == arrData[i]["_id"]){
+                idx =i
+                break
+            }
+        }
+
+        if(idx != -1){
+            for(let k in newData){
+                if(["工时代码","船号","工作任务"].indexOf(k) > -1){
+                    arrData[idx][k] = newData[k]
+                }
+            }
+        }else{
+            arrData.push(newData)
+        }
+
+        console.log(arrData)
+    }
+
+    //选择工时代码 
+    function btnRowCode(obj){
+        nowId = parseInt($(obj).attr('row-id'))
+        //console.log(obj)
+        showDialog("#dlg3",['934px', '460px'],"选择工时项")
+    }
+</script>
+<!--工具条处理-->
+<script>
+    //刷新
+    function btnToolBarRefresh(){
+        var table = layui.table
+        ,laydate = layui.laydate
+
+        model.get({"周日期":oneWeekDesc,"登记人":User.英文名},function(res) {
+            if (res.state) {
+                for(let i=0,n=res.data.length;i<n;i++){
+                    res.data[i]["ShipList"] = objRowShipDict
+                    if(objRowWorkDict.hasOwnProperty(res.data[i]["工时代码"])){
+                        res.data[i]["SelList"] = objRowWorkDict[res.data[i]["工时代码"]]
+                    }else{
+                        res.data[i]["SelList"] = []
+                    }
+                }
+                table.reload('dbGrid', {
+                    data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
+                    ,page:false
+                    ,limit:res.data.length
+                });
+            }
+            //laydate bug ajax之后需要重新渲染
+            InitDate()
+
+        });
+
+        model.getProjList({},function(res) {
+            if (res.state) {
+                table.reload('dbGrid2', {
+                    data: res.data // 调用table.reload 重新渲染显示加载追加了数据的表格
+                });
+            }
+        }); 
+    }
+
+    //选着项目 添加
+    function btnToolBarAdd(){
+        //layer.msg('添加');
+        objEditId = 0
+        showDialog("#dlg2",['834px', '460px'])
+    }
+
+    //工具条中的保存
+    function btnToolBarSave(){
+        saveInsertDataArr()
+        saveUpdateDataArr()
+    }
+
+    //保存新添加的
+    function saveInsertDataArr(){
+        if(insertDataArr.length > 0){
+            let dataArr1 = []
+            for(let i=0,n=insertDataArr.length;i<n;i++){
+                let item1 = {}
+                item1["_id"] = insertDataArr[i]["_id"]
+                item1["工时代码"] = insertDataArr[i]["工时代码"]
+                item1["船号"] = insertDataArr[i]["船号"]
+                item1["工作任务"] = insertDataArr[i]["工作任务"]
+                item1["周日期"] = oneWeekDesc
+                item1["登记人"] = User.英文名
+                item1["日期工时s"] = insertDataArr[i]["日期工时s"]
+                dataArr1.push(item1)
+            }
+            model.insertBat(dataArr1,function(res){
+                if(res.state){
+                    //根据返回的数据，处理insertDataArr数组
+                    for(let i=0,n=res.data.length;i<n;i++){
+                        delRowDataArr(res.data[i]["_id2"], insertDataArr)
+                        //更新行 根据id2更新行id
+                        MyTable.UpdateRowDataByID2("dbGrid",res.data[i]["_id2"],res.data[i])
+                    }
+                    layer.msg('新增保存成功')
+                }else{
+                    layer.msg('新增保存失败')
+                }
+
+            }) 
+        }
+    }
+
+    //更新修改的
+    function saveUpdateDataArr(){
+        if(updateDataArr.length > 0){
+            console.log(updateDataArr)
+            model.updateBat(updateDataArr,function(res){
+                if(res.state){
+                    //根据返回的数据，处理insertDataArr数组
+                    for(let i=0,n=res.data.length;i<n;i++){
+                        delRowDataArr(res.data[i]["_id"], updateDataArr)
+                    }
+                    layer.msg('修改保存成功')
+                }else{
+                    layer.msg('修改保存失败')
+                }
+
+            }) 
+        }
+ 
+    }
+
+    //删除
+    function btnToolBarDel(data){
+        if(data.length === 0){
+            layer.msg('请选择一行')
+        } else {
+            layer.confirm('确定删除?', {icon: 3, title:'提示'}, function(index){
+                for(let i=0,n=data.length;i<n;i++){
+                    let item0 = data[i]
+                    if(item0["_id"] > 0){
+                        //从服务器端删除
+                        btnRemoveOnWeb(item0)
+                        //删除需要上传及更新的数据
+                        delRowDataArr(item0["_id"], updateDataArr)
+                    }else{
+                        delRowDataArr(item0["_id"], insertDataArr)
+                    }
+                }
+                //删除表格中的数据
+                MyTable.RemoveRowDataByChecked("dbGrid")
+                //关闭自己
+                layer.close(index)
+            })  
+        }
+    }
+
+    //删除
+    function btnRemoveOnWeb(data){
+        //删除用参数
+        model.remove(data,function(res){
             if(res.state){
-                MyTable.AddRow("dbGrid",res.data)
-            } 
-        })   
-    }else if(objEditId > 0){
-        var newObj = data.field
-        newObj["_id"] = objEditId
-        model.update(newObj, function(res){
-            if(res.state){
-                MyTable.UpdateRowDataByChecked("dbGrid",res.data)
+                //MyTable.RemoveRowDataByChecked("dbGrid")
+                //laydate bug ajax之后需要重新渲染
+                //InitDate()
+                layer.msg('删除成功')
+            }else{
+                layer.msg('删除失败')
             }
         })
     }
 
-    layer.closeAll(); //疯狂模式，关闭所有层
-    return false;
-}
-
-//删除
-function btnToolBarDel(data){
-    if(data.length === 0){
-        layer.msg('请选择一行')
-    } else {
-        layer.confirm('确定删除?', {icon: 3, title:'提示'}, function(index){
-            btnRemove(data[0])
-            //关闭自己
-            layer.close(index)
-        })  
-    }
-}
-
-//删除
-function btnRemove(data){
-    //删除用参数
-    model.remove(data,function(res){
-        if(res.state){
-            MyTable.RemoveRowDataByChecked("dbGrid")
-            //laydate bug ajax之后需要重新渲染
-            InitDate()
+    //删除需要上传及更新的数据
+    function delRowDataArr(delID, arrData){
+        for(let i=0,n=arrData.length;i<n;i++){
+            if(delID == arrData[i]["_id"]){
+                arrData.splice(i, 1)
+                break
+            }
         }
-    })
-}
-
-</script>
  
+        console.log(arrData)
+    }
+
+
+    //添加空白行
+    function btnToolBarAddRow(){
+        var table = layui.table
+        //更新行
+        let nowData = MyTable.GetRowsData("dbGrid")
+        
+        let insertRow = {}
+        totalInsertID = totalInsertID -1
+        insertRow["_id"]=totalInsertID
+        insertRow["工时代码"]=""
+        insertRow["船号"]=""
+        insertRow["工作任务"]=""
+        nowData.data.push(insertRow)
+        table.reload("dbGrid",{page:false,limit:nowData.data.length,data: nowData.data})
+
+        insertDataArr.push(insertRow)
+        console.log(insertRow)
+    }
+</script>
+<!--弹出对话框处理-->
+<script type="text/javascript">
+    function showDialog(dlg,area,title="选择工作内容"){
+        dlg2Index = layer.open({
+            type: 1,
+            closeBtn: 1,
+            shift: 2,
+            shadeClose: true,
+            content: $(dlg),
+            title: title,
+            fixed:false,
+            top:10,
+            area: area
+        });
+    }
+
+    //选择项后添加 到 编辑行
+    function SelectOneRowDlg2(selData){
+        layer.close(dlg2Index)
+
+        var table = layui.table
+        //更新行
+        let nowData = MyTable.GetRowsData("dbGrid")
+        let newObj1= {}
+        newObj1["任务id"]=selData["_id"]
+        newObj1["工时代码"]=selData["工时代码"]
+        newObj1["船号"]=selData["船号"]
+        newObj1["工作任务"]=selData["工作任务"]
+        nowData.data.push(newObj1)
+        table.reload("dbGrid",{data: nowData.data})
+    }
+
+    //选择项后添加 到 编辑行
+    function SelectOneRowDlg3(selData){
+        layer.close(dlg2Index)
+        //console.log(selData)
+        //update checked row
+        let newData = {}
+        newData["_id"] = nowId  //选择是的id
+        newData["工时代码"] = selData["1"]
+        if(objRowWorkDict.hasOwnProperty(selData["1"])){
+            newData.SelList = objRowWorkDict[selData["1"]]
+        }else{
+            newData.SelList = []
+        }
+        
+        //nowRow.SelList.push({t:"结构图",v:"结构图"})
+        //nowRow.SelList.push({t:"套料图",v:"套料图"})
+        MyTable.UpdateRowDataByID("dbGrid",newData)
+        if(newData["_id"] <= 0){
+            updateRowDataArr2(newData,insertDataArr)
+        }else{
+            updateRowDataArr2(newData,updateDataArr)
+        }
+    }
+</script>
 </html>
