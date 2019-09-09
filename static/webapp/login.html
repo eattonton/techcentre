@@ -1,593 +1,128 @@
 <!DOCTYPE html>
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>舟山中远报验遗留单--手机</title>
-    <link rel='stylesheet' href="index.css" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes" />
-    <script type="text/javascript" src="../quality/config.js"></script>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes"/>
+
+    <title>舟山中远海运重工--技术中心-用户登陆</title>
+    <link rel="stylesheet" href="/js/layui-v2.5.4/layui/css/layui.css">
+    <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/js/ajax.js"></script>
+    <script src="/js/layui-v2.5.4/layui/layui.js"></script>
+
+    <script src="/config/config.js"></script>
+    <style type="text/css">
+        body {
+            background: url('/res/home.jpg');
+            -moz-background-size: 100% 100%;
+            background-size: 100% 100%;
+            background-attachment: fixed;
+        }
+
+        .container {
+            width: 94%;
+            position: absolute;
+            top: 25%;
+            left: 3%;
+        }
+
+        .cardbg {
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 3px 18px rgba(100, 0, 0, .5);
+        }
+
+        .cardtitle {
+            font-weight: bold;
+            font-size: 20px;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .input_style {
+            border: 1px solid #ccc;
+            padding: 7px 0px;
+            border-radius: 3px;
+            padding-left: 5px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s
+        }
+
+        .input_style:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6)
+        }
+    </style>
 </head>
-
 <body>
-    <!--登录页-->
-    <div id="_start" style="left: 350px; height: 100%; overflow:hidden;width: 100%;">
-        <div style="margin: 0 5px"> </div>
-        <div id="login_container" style="display: block;">
-            <div id="lab1">
-                <span id="lab_login" style="text-align: center">用户登录</span>
-            </div>
-            <div style="width:330px;">
-                <span id="lab_type1">账号+密码登陆</span>
-            </div>
-            <div id="form_container1">
-                <br>
-                <input type="text" class="form-control" placeholder="用户名" id="login_number">
-                <input type="password" class="form-control" placeholder="密码" id="login_password">
-                <input type="button" value="登录" class="btn btn-success" id="login_btn">
-            </div>
-        </div>
-    </div>
-    
-    <div class="title">
-        <div class="rollback header_btn">返回</div>
-        <div class="header_title">报验遗留项</div>
-        <div class='loginout header_btn'>退出</div>
-    </div>
-
-    <div id="info" style="display: none;position: absolute;left:0;top: 40px;">
-        <div id="tableData">
-            <!--列表页-->
-            <!-- <div id='tableinfo' style="padding: 5px">
-                <div style="margin-bottom: 10px"></div>
-                <input id='filter_input' style="width:70%;height:100%;display: inline" type="text" class="form-control" placeholder="输入过滤条件">
-                <span id='filter_data' class="btn btn-default" style="width:15%">过滤</span>
-            </div> -->
-            <table id='mytable' style="clear: both" class="table table-bordered table-striped table-responsive">
-                <thead>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-
-            <div class="moredata">
-                加载更多数据
+<div id="dlg" class="container">
+    <div class="layui-card cardbg">
+        <div class="layui-card-header cardtitle">技术中心工时录入系统</div>
+        <div class="layui-card-body">
+            <div class="layui-form" action="" lay-filter="myform" id="myform" method="get">
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="width: 50px" >用户:</label>
+                    <div class="layui-input-block" style="margin-left: 80px">
+                        <input type="text" name="user" id="user" class="layui-input input_style"
+                               placeholder="请输入用户名"/>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="width: 50px">密码:</label>
+                    <div class="layui-input-block" style="margin-left: 80px">
+                        <input type="password" name="pass" id="pass"
+                               class="layui-input input_style" placeholder="请输入密码"/>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block" style="margin-left: 35px">
+                        <button class="layui-btn" lay-submit="" lay-filter="btnLogin" style="width: 100%"
+                                onclick="loginClick()">登录
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- 搜索页 -->
-    <div class="modal" id='searchModel' style="position: absolute;left:0;top: 40px;">
-        <table>
-            <tr>
-                <td width="80">
-                    <label for='shipno'>船号</label>
-                </td>
-                <td colspan="3">
-                    <select class="form-control" id='shipno'>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label for='checkplace'>责任工区</label>
-                </td>
-                <td colspan="3">
-                    <select class="form-control selectpicker" id='checkplace'>
-                    </select>
-                </td>
-
-            </tr>
-            <tr>
-                <td>
-                    <label for='checkplace'>报验人</label>
-                </td>
-                <td colspan="3">
-                    <select class="form-control selectpicker" id='checker'>
-                    </select>
-                </td>
-
-            </tr>
-            <tr>
-                <td>
-                    <label for='selDate1'>报验日期</label>
-                </td>
-                <td>
-                    <input type="text" class='datepicker' id="selDate1" placeholder="请输入日期">
-                </td>
-                <td style="text-align: center;width:10%"> 至</td>
-                <td>
-                    <input type="text" class='datepicker' id="selDate2" placeholder="请输入日期">
-                </td>
-            </tr>
-
-        </table>
-
-
-        <button type="button" class="btn btn-primary" id="searchBtn" style="width: 100px;float: right">搜索</button>
-    </div>
-
-
-    <!--详情页-->
-    <div id="detailV" style="display: none">
-        <div class="title">
-            <div class="rollback header_btn">返回</div>
-            <div class="header_title">报验单详情</div>
-            <div class='loginout header_btn'>退出</div>
+    <div style="bottom: 1px;width: 100%;padding: 10px ">
+        <div style="text-align: center;width: 100%;color: black;font-weight: 600px">
+            ©2019 舟山中远海运重工
         </div>
-        <table id="detail" width="100%" class='table table-responsive table-striped' style="border-collapse: separate;">
-        </table>
     </div>
+</div>
 
-    <!-- 消息 -->
-    <div id="loading" class="loading load_img">加载中...</div>
-    <div id='notice' class="loading"></div>
-
-</body>
-<script src="jquery.js"></script>
 <script type="text/javascript">
-    var showH = ["序号", "船号",
-            "报验日期",
-            "意见编号",
-            "意见内容",
-            "报验项目",
-            "报验工区",
-            "责任工区",
-            "意见分类",
-            "质检员"
-        ],
-        keys = [
-            "船号",
-            "报验日期",
-            "报验次数",
-           
-            "意见编号",
-            "报验项目",
-            "报验工区",
-            "责任工区",
-            "意见内容",
-            "意见分类",
-            "质检员"
-        ],
-        table = $("#mytable"),
-        currentData = [{
-            "报验日期": "2018-01-01",
-            "船号": 2001,
-            "报验项目": "0000111",
-            "报验工区": "分段工区",
-            "责任工区": "工艺工区"
-        }];
-    page = 20;
-    table.data("tableData", []);
-
-    function oneLine(cell) {
-        var str = [];
-        showH.forEach(function (key) {
-            str.push(cell[key]);
-        });
-        return str.join("$$");
-    }
-
-    function _filter(dataStr) {
-        if (dataStr == "") {
-            return [].concat(table.data("tableData"));
-        }
-
-        return table.data("tableData").filter(function (cell) {
-            return oneLine(cell).indexOf(dataStr) != -1;
-        });
-    }
-
-    function theader() {
-        var header = table.find("thead");
-        header.empty();
-        var tr = $("<tr></tr>");
-        header.append(tr);
-
-        showH.forEach(function (cell) {
-            var th = $("<th></th>");
-            th.text(cell);
-            tr.append(th);
-        });
-    }
-
-    function appendRow(value) {
-        var tr = $("<tr></tr>");
-        tr.data("rowData", value);
-        showH.forEach(function (cell) {
-            var td = $("<td></td>");
-            td.text(value[cell] ? value[cell] : "");
-            tr.append(td);
-        });
-        return tr;
-    }
-    var index = 1;
-
-    function tableF(values, refresh) {
-        var tbody = $("#mytable").find("tbody");
-        if (refresh) {
-            tbody.empty();
-            index = 1;
-        }
-        if (values.length >= page) {
-            var add = values.splice(0, page);
-        } else {
-            var add = values.splice(0, values.length);
-        }
-        add.forEach(function (cell) {
-            cell["序号"] = index++;
-            tbody.append(appendRow(cell));
-        });
-
-        // tbody.find("tr").click(function (e) {
-        //     var data = $(e.target.parentElement).data("rowData");
-        //     showInfo(data)
-        // });
-        if (values.length > 0) {
-            $(".moredata").show(100);
-        } else {
-            $(".moredata").hide(100);
-        }
-    }
-
-    function genText(_label, value) {
-        var group = $("<tr></tr>");
-        var label = $("<td width='20%' style='text-align:right'><label>" + _label + ":</label></td>");
-        var input = $("<td  width='70%'><div>" + value + "</div></td>");
-        group.append(label);
-        group.append(input);
-        return group;
-    }
-
-    //登录页
-    function showStep0() {
-        $("#_start").show(200);
-        $("#info").hide(200);
-        // $(".title").hide(200);
-
-        $(".rollback").hide(200);
-        $(".loginout").hide(200);
-        $(".modal").hide(200);
-        $("#info").css("minWidth","400px");
-    }
-    var currentIndex = 0;
-    //搜索页
-    function showStep1() {
-        currentIndex = 1;
-        $(".header_title").text("搜索报验遗留项");
-        $("#info").show(200);
-        $("#tableData").hide(200);
-        $("#searchModel").show(200);
-        $(".rollback").hide(200);
-        $(".loginout").show(200);
-
-        $("#_start").hide(200);
-        $("#detailV").hide(200);
-        $("#info").css("minWidth","400px");
-    }
-
-    //列表页
-    function showStep2() {
-        currentIndex = 2;
-        $(".header_title").text("报验遗留项");
-
-        $("#info").show(200);
-        $("#tableData").show(200);
-        $("#searchModel").hide(200);
-        $(".rollback").show(200);
-        $(".loginout").show(200);
-
-        $("#_start").hide(200);
-        $("#detailV").hide(200);
-        $("#info").css("minWidth","900px");
-    }
-    //详情页
-    function showStep3() {
-        currentIndex = 3;
-        $("#_start").hide(200);
-        $("#info").hide(200);
-        $("#detailV").show(200);
-        $(".rollback").show(200);
-    }
-
-    function showInfo(value) {
-        var detail = $("#detail");
-        detail.empty();
-        keys.forEach(function (key) {
-            detail.append(genText(key, value[key] ? value[key] : ""));
-        });
-        showStep3();
-    }
-
-    function appendOptions(id, values) {
-        var select = $("#" + id);
-        select.empty();
-        values.forEach(function (cell) {
-            if(typeof cell == "undefined"){
-                return;
-            }
-            select.append($("<option value='" + cell.v.toString() + "'>" + cell.t.toString() + "</option>"));
-        });
-    }
-
-    function set(id, flag, container) {
-        if (flag) {
-            container[id] = $("#" + id).val();
-            return;
-        }
-        $("#" + id).val("");
-    }
-
-    function getValue(getV) {
-        var ids = ["checkplace", "shipno", "checker", "selDate1", "selDate2"];
-        var values = {};
-        ids.forEach(function (cell) {
-            set(cell, getV, values);
-        });
-        return values;
-
-    }
-
-    var ConfigParam = {};
-
-    function loadConfigParamShip(cbNext){
-        $.getJSON("/ship/getOk", function (data) {
-            var arr1 = $(data).map(function () {
-                return {
-                    v: this.船号,
-                    t: this.船号 + ' ' + this.描述
-                }
-            }).get();
-            ConfigParam["船号组"] = arr1;
-            typeof cbNext == 'function' && cbNext()
-        });
-    }
-
-    function loadConfigParamUser(cbNext){
-        $.getJSON("/user/get", function (data) {
-            var arr2 = $(data).map(function () {
-                return {
-                    v: this.英文名,
-                    t: this.英文名 + '(' + this.名 + ')'
-                }
-            }).get();
-            ConfigParam["用户组"] = arr2;
-            typeof cbNext == 'function' && cbNext()
-        });
-    }
-
-    function loadConfigParam(cb) {
-        $.getJSON("/quality/dailyformconfig.json", function (data) {
-            $.extend(ConfigParam, data);
-            loadConfigParamShip(function cb2(){
-                loadConfigParamUser(function cb3(){
-                     typeof cb == 'function' && cb(ConfigParam)
-                })
-            });
-            
-
-        });
-    }
-
-    function init() {
-        loadConfigParam(function (data) {
-            //console.log(data2)
-            appendOptions("checker", [{
-                v: "",
-                t: ""
-            }].concat(data.用户组));
-            appendOptions("checkplace", [{
-                v: "",
-                t: ""
-            }].concat($(data.责任工区).map(function () {
-                return {
-                    v: this,
-                    t: this
-                }
-            }).get()));
-            appendOptions("shipno", [{
-                v: "",
-                t: ""
-            }].concat(data.船号组));
-        });
-    }
-
-    $(function () {
-        setTimeout(function () {
-            theader();
-        }, 1);
-
-        //load config
-        init();
-        //load commentundo
-        var storeObj = config.localParamGet("commentundo");
-
-        $("#_start").height($(document).height());
-        $("#login_btn").click(function () {
-            function validate() {
-                var user = $("#login_number").val(),
-                    pass = $("#login_password").val();
-                if (!user) return showInfo("请输入用户名");
-                if (!pass) return showInfo("请输入密码");
-                return {
-                    'name': user,
-                    'pass': pass
-                }
-            }
-
-            var data = validate();
-            if (!data) return;
-
-            $('.loginout').text(data.name);
-            ajaxUitl("/user/find", JSON.stringify(data), function (res) {
-                if (parseInt(res) >= 0) {
-                    showInfo("登陆失败");
-                }else{
-                    $("#login_password").val("");
-                    storeObj = data;
-                    //save to store
-                    config.localParamSet("commentundo",data);
-                    showStep1();
-                }
-            }, {
-                msg: "登录失败,请核对用户名和密码"
-            });
-        });
-        // $('#selDate1,#selDate2').datepicker({
-        //     autoclose: true,
-        //     language: "zh-CN",
-        //     format: 'yyyy-mm-dd',
-        // });
-
-        // $("#searchModel").on("hidden.bs.modal", function () {
-        //     setTimeout(function () {
-        //         getValue(false);
-        //     }, 1);
-        // });
-        if(storeObj){
-            $('.loginout').text(storeObj.name);
-            if(storeObj.data && storeObj.filter11){
-                showStep2();
-                LoadBill(storeObj.data,storeObj.filter11,storeObj.filter12)
-            }else{
-                showStep1();
-            }
-        }else{
-            showStep0();
-        }
-
-        function rollback() {
-            switch (currentIndex) {
-                case 1:
-                    showStep0();
-                    break
-                case 2:
-                    getValue(false);
-                    showStep1();
-                    break;
-                default:
-                    showStep2();
-                    break;
-            }
-        }
-
-        function showInfo(msg) {
-            $("#notice").text(msg);
-            $("#notice").show(100);
-            setTimeout(function () {
-                $("#notice").hide(100);
-            }, 2000);
-        }
-
-        function LoadBill(data,filter11,filter12){
-            var url = '/dform/comm/get/n?filter1=' + JSON.stringify(filter11) + '&filter2=' + JSON.stringify(filter12);
-
-            showStep2();
-
-            ajaxUitl(url, {}, function (data) {
-                if (data.length <= 0) {
-                    return showInfo("未获取到符合条件的数据");
-                }
-
-                currentData = data;
-                table.data("tableData", [].concat(currentData));
-                tableF(currentData, true);
-
-            })
-        }
-
-        function ajaxUitl(url, data, success, config) {
-            var _config = {
-                url: url,
-                data: {data:data},
-                success: function (data) {
-                    $("#loading").hide(100);
-                    success(data);
-                },
-                error: function (data) {
-                    $("#loading").hide(100);
-                    if (config && config.error) {
-                        config.error();
-                    } else {
-                        showInfo(config && config.msg ? config.msg : "加载数据异常");
-                    }
-                }
-            }
-            $.extend(true, _config, config);
-            $("#loading").show(100);
-            $.ajax(_config);
-        }
-
-        $("#searchBtn").click(function () {
-            var data = getValue(true);
-            if (data.selDate1 && data.selDate2 && data.selDate1 > data.selDate2) {
-                return showInfo("日期选择错误");
-            }
-
-            var filter11 = {},
-                filter12 = {};
-            if (data.selDate1 == '' && data.selDate2 != '') {
-                var timestamp2 = Date.parse(new Date(data.selDate2)) / 1000.0;
-                filter12["报验日期2"] = {
-                    '$lte': timestamp2
-                };
-
-            } else if (data.selDate1 != '' && data.selDate2 != '') {
-                var timestamp1 = Date.parse(new Date(data.selDate1)) / 1000.0;
-                var timestamp2 = Date.parse(new Date(data.selDate2)) / 1000.0;
-                filter12["报验日期2"] = {
-                    '$gte': timestamp1,
-                    '$lte': timestamp2
-                };
-            }
-
-            if (data.shipno != '') {
-                filter11["船号"] = data.shipno
-            }
-            if (data.checkplace != '') {
-                filter11["责任工区"] = data.checkplace
-            }
-            if (data.checker != '') {
-                filter12["质检员"] = data.checker
-            }
-            filter11["意见状态"] = {
-                '$in': [1, 2]
-            }
-
-            storeObj["data"] = data
-            storeObj.filter11 = filter11
-            storeObj.filter12 = filter12
-            config.localParamSet("commentundo",storeObj);
-            LoadBill(data,filter11,filter12)
-
-            
-        });
-
-        $(".loginout").click(function () {
-            localStorage.removeItem('commentundo');
-            showStep0();
-        });
-
-        $(".rollback").click(function () {
-            rollback();
-        });
-
-        $(".moredata").click(function () {
-            tableF(currentData, false);
-        });
-
-        $("#filter_data").click(function () {
-            var data = _filter($("#filter_input").val().trim());
-            $("#filter_data").css({
-                "color": "#333",
-                "background-color": "#fff",
-                "border-color": "#ccc"
-            });
-            if (data.length <= 0) {
-                return showInfo("未获取到符合条件的数据");
-            }
-            tableF(data,true);
-        });
+    layui.use(['form', 'layer'], function () {
     });
-</script>
 
+    function loginClick() {
+        var user = {};
+        user.name = $("#user").val();
+        user.pass = $("#pass").val();
+        if (!user.name) {
+            return layer.msg("用户名必填!", {time: 2000, offset: "10px"})
+        }
+        if (!user.pass) {
+            return layer.msg("密码填!", {time: 2000, offset: "10px"})
+        }
+        config.userValid(user.name, user.pass, function (res) {
+            console.log(res)
+            if (res.data == 0) {
+                layer.msg("不存在此用户，请联系管理员!", {time: 1000, offset: "10px"})
+            } else if (res.data == 1) {
+                layer.msg("密码错误!", {time: 1000, offset: "10px"})
+            } else if (res.state == true) {
+                config.localParamSet(config.storageName, res.data);
+                location.href = '/webapp/index.html'
+            }
+        })
+    }
+
+</script>
+</body>
 </html>

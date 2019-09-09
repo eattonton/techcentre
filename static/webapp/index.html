@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="wap-font-scale" content="no">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1,user-scalable=no">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <!--<link rel="stylesheet" href="/js/layui-v2.5.4/layui/css/layui.css">-->
+    <link rel="stylesheet" type="text/css" href="/webapp/mobileSelect.css">
+    <script src="/webapp/mobileSelect.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/js/ajax.js"></script>
+    <script src="/js/layui-v2.5.4/layui/layui.js"></script>
+
+    <script src="/config/config.js"></script>
+    <title>舟山中远海运重工技术中心-工时录入系统</title>
+</head>
+<style>
+    * {
+        padding: 0px;
+        margin: 0px;
+        font-size: 12px;
+    }
+
+    .info .onerow {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 4px 0px 4px 0px;
+        background: white;
+        margin-top: 8px;
+    }
+
+    .info .content {
+        padding-top: 25px;
+        overflow: hidden;
+    }
+
+    .info .content label {
+        display: inline-block;
+        width: 30%;
+        text-wrap: normal;
+        line-height: 30px;
+        padding-left: 10px;
+        font-size: 14px;
+        font-weight: 600px;
+        color: gray;
+    }
+
+    .info .content input {
+        display: inline-block;
+        width: 70%;
+        height: 30px;
+        text-indent: 5px;
+        text-align: right;
+        padding-right: 10px;
+        border: 0px;
+        color: gray;
+    }
+
+    div.submit {
+        text-align: center;
+        height: 25px;
+        width: 100px;
+        padding: 5px;
+        background: lightseagreen;
+        color: white;
+        line-height: 25px;
+        cursor: pointer;
+    }
+
+    body {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .info .content input:focus {
+        outline: 0;
+    }
+
+    .info .title {
+        background: lightseagreen;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        color: white;
+
+    }
+</style>
+<body>
+<div class="info" style="display: flex;flex-direction: column;">
+    <div class="title">
+        <div onclick="window.history.go(-1)" style="position: absolute;font-size:16px;font-weight:bold; line-height:45px;width: 30px"><</div>
+        <div style="font-weight: bold;font-size: 16px;padding: 15px 10px 5px 10px">技术中心工时录入系统</div>
+        <hr color="white" size="xxp">
+        <div id="date" style="font-size: 12px;font-weight: 200px;padding: 5px"></div>
+    </div>
+    <div class="content">
+        <div class="onerow">
+            <label>工号:</label>
+            <input id='work' name="工号"/>
+        </div>
+        <div class="onerow">
+            <label>姓名:</label>
+            <input id='name' name="姓名"/>
+        </div>
+
+        <div class="onerow">
+            <label>船号:</label>
+            <input id='ship' name='船号' placeholder="请选择船号"></input>
+        </div>
+        <div class="onerow">
+            <label class="wrap">分段/总装/区域:</label>
+            <input id='location' name="位置" placeholder="请输入分段/总装/区域"></input>
+        </div>
+        <div class="onerow">
+            <label>工作内容:</label>
+            <input id="content" rows="5" name="工作内容" placeholder="请选择工作内容"></input>
+        </div>
+        <div class="onerow">
+            <label>代号:</label>
+            <input id="code" name="代码" readonly placeholder="根据工作内容自动填充"></input>
+        </div>
+        <div class="onerow">
+            <label>工时:</label>
+            <input id="hour" name="工时" placeholder="请录入工时" style="width: 75%;padding-right: 2px"/>
+            <span style="color:gray;line-height: 34px;width: 10%;text-align: right;padding-right: 10px">小时</span>
+        </div>
+        <div class="onerow">
+            <label>时间:</label>
+            <input id="datetime" name="时间" placeholder="请选择时间"/>
+        </div>
+        <div style="margin-top: 15px;width: 100%" class="submitDiv">
+            <div class="submit" style="width: 80%;line-height:30px;margin: 0 auto;border-radius:30px;height: 30px">
+                提交
+            </div>
+        </div>
+    </div>
+    <div class="footer"
+         style="background:lightseagreen;line-height:25px;color: white;border-bottom-right-radius: 12.5px;border-bottom-left-radius: 12.5px; position: fixed;bottom: 1px;width: 100%;text-align: center">
+        ©2019 舟山中远海运重工
+    </div>
+</div>
+</body>
+<script src="jquery.js"></script>
+<script>
+    layui.use(['layer'], function () {
+    });
+    var model = {
+        run: function (call, url, param, callback) {
+            call(url, param, function (res) {
+                !res.state && $.messager.info("error", res.data);
+                res.state && callback && callback(res);
+            })
+        },
+        getShip: function (param, callback) {
+            callback({data: [1, 23, 4]});
+            return;
+            model.run(AJAX.get, "/tc/getShip", param, callback);
+        },
+        getCode: function (param, callback) {
+            callback({data: [3, 5, 6]});
+//            model.run(AJAX.get, "/tc/getShipZone", param, callback);
+        },
+        getWork: function (param, callback) {
+            callback({data: [{工作内容: "型线光顺", 代号: "A1"}]});
+//            model.run(AJAX.get, "/tc/getWork", param, callback);
+        },
+        add: function (param, callback) {
+            model.run(AJAX.post, "/tc/insert", param, callback);
+        },
+    }
+</script>
+<script>
+    var shipConfig = {};
+    var currentCode = [];
+    function init() {
+        var current = new Date().Format("Y年M月d日");
+        $("#datetime").val(current);
+        $("#date").text(current);
+        function initShip(config) {
+            model.getShip({}, function (res) {
+                var mobileSelect1 = new MobileSelect({
+                    trigger: '#ship',
+                    title: '选择船号',
+                    wheels: [
+                        {data: res.data}
+                    ],
+                    transitionEnd: function (indexArr, data) {
+                        //console.log(data);
+                    },
+                    callback: function (indexArr, data) {
+                        mobileSelect1.position = [indexArr];
+                        $("#ship").val(data);
+                        initZone(data);
+                    }
+                });
+            });
+        }
+
+        function initZone(ship) {
+            model.getCode({船号: ship}, function (res) {
+                currentCode = res.data;
+//                var mobileSelect2 = new MobileSelect({
+//                    trigger: '#location',
+//                    title: '选择分度/总组/区域',
+//                    wheels: [
+//                        {data: res.data}
+//                    ],
+//                    transitionEnd: function (indexArr, data) {
+//                        //console.log(data);
+//                    },
+//                    callback: function (indexArr, data) {
+//                        mobileSelect2.position = [indexArr];
+//                        $("#location").val(data);
+//                    }
+//                });
+            });
+        }
+
+        function initWork() {
+            model.getWork({}, function (res) {
+                var mobileSelect3 = new MobileSelect({
+                    trigger: '#content',
+                    title: '选择工作内容',
+                    wheels: [
+                        {
+                            data: res.data.map(function (cell) {
+                                return cell.工作内容
+                            })
+                        }
+                    ],
+                    transitionEnd: function (indexArr, data) {
+                        //console.log(data);
+                    },
+                    callback: function (indexArr, data) {
+                        mobileSelect3.position = indexArr;
+                        $("#content").val(data[0]);
+                        var find = res.data.find(function (cell) {
+                            return cell.工作内容 == data[0];
+                        });
+                        $("#code").val(find.代号);
+                    }
+                });
+            });
+        }
+
+        initShip();
+        initWork()
+        //日期选择
+        var getDate = function () {
+            var date = new Date();
+            var year = date.getFullYear();
+            var dates = [];
+            var index = -15;
+            while (index <= 15) {
+                if (index < 0) {
+                    dates.push(year - (15 - index))
+                } else {
+                    dates.push(year + index);
+                }
+                index++;
+            }
+            return dates;
+        };
+        var years = getDate();
+        var months = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12];
+        var days = get_dates(getMonthLength(new Date()));
+
+        function getMonthLength(date) {
+            var d = new Date(date);
+            // 将日期设置为下月一号
+            d.setMonth(d.getMonth() + 1)
+            d.setDate('1')
+            // 获取本月最后一天
+            d.setDate(d.getDate() - 1)
+            return d.getDate()
+        }
+
+        function get_dates(date) {
+            var index = 1;
+            var dates = [];
+            while (index <= date) {
+                dates.push(index);
+                index++;
+            }
+            return dates;
+        }
+
+        function getSelect() {
+            var date = new Date();
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            var day = date.getDate();
+            return [years.indexOf(year), months.indexOf(month), days.indexOf(day)]
+        }
+
+        var dateSelect = new MobileSelect({
+            trigger: '#datetime',
+            title: '选择时间',
+            wheels: [
+                {data: years},
+                {data: months},
+                {data: days}
+            ],
+            position: getSelect(),
+            transitionEnd: function (indexArr, data) {
+                dateSelect.position = indexArr;
+                var date = "{0}/{1}/{2}".format(data[0], data[1], data[2]);
+                var days1 = get_dates(getMonthLength(new Date(date)));
+                if (days.length != days1.length) {
+                    days = days1;
+                    dateSelect.updateWheel(2, days);
+                }
+            },
+            callback: function (indexArr, data) {
+                dateSelect.position = indexArr;
+                var string = "{0}年{1}月{2}日".format(data[0], data[1], data[2]);
+                $("#datetime").val(string);
+            }
+        });
+    }
+    init();
+</script>
+<script>
+    var user = config.localParamGet(config.storageName);
+    if (!user) {
+        window.location.href = "/webapp/login.html";
+    }
+    $("#work").val(user.工号 || "");
+    $("#name").val(user.姓名 || "");
+
+    $("input").focus(function () {
+        var value = $(this).val();
+        var obj = $(this);
+        obj.val("");
+        obj.css("color","gray");
+        setTimeout(function () {
+            obj.val(value);
+        }, 1)
+    });
+    $(".submit").click(function () {
+        var values = {};
+        var hasNotInput = false;
+        $(".content [name]").each(function () {
+            var name = $(this).attr("name");
+            var val = $(this).val();
+            if (!val) {
+                $(this).css("color", "red");
+                hasNotInput = true;
+            }
+            values[name] = val;
+        });
+        var errors = [];
+        if (values["分段/总组/区域"] && currentCode.indexOf(values["分段/总组/区域"]) === -1) {
+            $("#location").css({
+                color: "red",
+            })
+            errors.push("输入的分段/总组/区域有误");
+        }
+        if (hasNotInput) {
+            errors.push("请输入必填数据");
+        }
+        if (errors.length > 0) {
+            layer.msg(errors.join("</br>"), {timeout: 3000});
+            return;
+        }
+        model.add(values, function (res) {
+            layer.msg("上报工时成功", {timeout: 1000});
+        });
+    });
+    $(".info .title").css({height: 70});
+    $(".info .content").css({height: document.documentElement.clientHeight - 95});
+    $(".info .footer").css({height: 25});
+</script>
+</html>

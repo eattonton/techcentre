@@ -16,7 +16,7 @@
   <div class="layui-header">
     <div class="layui-logo">技术中心</div>
     <!-- 头部区域（可配合layui已有的水平导航） -->
-     
+
     <ul class="layui-nav layui-layout-right">
       <li class="layui-nav-item">
         <a href="javascript:;">
@@ -31,20 +31,20 @@
       <li class="layui-nav-item"><a href="">退了</a></li>
     </ul>
   </div>
-  
+
   <div class="layui-side layui-bg-gray">
     <div class="layui-side-scroll">
       <div id="test12" class="demo-tree-more"></div>
     </div>
   </div>
-  
+
   <div id="content" class="layui-body">
-        <iframe frameborder="0" id="contentFrame" style="width: 100%;" scrolling="auto"></iframe> 
+        <iframe frameborder="0" id="contentFrame" style="width: 100%;" scrolling="auto"></iframe>
   </div>
-  
-  <div class="layui-footer">
+
+  <div class="layui-footer" style="width: 100%;text-align: center;">
     <!-- 底部固定区域 -->
-    © layui.com - 底部固定区域
+    © 舟山中远海运重工
   </div>
 </div>
 
@@ -96,8 +96,8 @@ function LoadTree(){
             $("#contentFrame").attr("src", "projectlist.html?tt=" + config.version)
         }else if(sid == 201){
             $("#contentFrame").attr("src", "manhourrecord.html?tt=" + config.version)
-        } 
-       
+        }
+
     }
   });
 

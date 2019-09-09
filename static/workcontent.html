@@ -1,0 +1,313 @@
+<!--设计项目配置管理-->
+<style>
+    .header_label {
+        line-height: 30px;
+        padding: 5px 0px;
+        text-indent: 15px;
+        background: white;
+        width: 100%;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .form_container {
+        width: 90%;
+        margin: 0 auto;
+        padding-top: 25px;
+    }
+
+    .form_container label.layui-form-label {
+        width: 70px;
+    }
+
+    .form_container div.layui-input-block {
+        margin-left: 100px;
+    }
+
+    [lay-verify]:after {
+        content: "*";
+        color: red;
+        font-size: 16px;
+        position: relative;
+        top: 3px;
+    }
+</style>
+<script type="text/html" id="contentt">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="addShip">新增</button>
+        <button class="layui-btn layui-btn-sm" lay-event="delBat">批量删除</button>
+    </div>
+</script>
+<script type="text/html" id="contenttools">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="edit">编辑</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del">删除</button>
+    </div>
+</script>
+
+
+<div style="display: flex;flex-direction: row;justify-content: space-between">
+    <table id='contentInfo' lay-filter='content'></table>
+</div>
+
+<div id="addShip">
+    <div class="layui-form">
+        <div class="layui-form-item from_category">
+            <label class="layui-form-label" lay-verify>专业</label>
+            <div class="layui-input-block">
+                <input name="专业" class="layui-input" placeholder="请输入专业" lay-verify='required'>
+                </input>
+            </div>
+        </div>
+        <div class="layui-form-item from_time">
+            <label class="layui-form-label" lay-verify>工时类型</label>
+            <div class="layui-input-block">
+                <input name="工时类型" class="layui-input" placeholder="请输入工时类型" lay-verify='required'></input>
+            </div>
+        </div>
+
+        <div class="layui-form-item from_work">
+            <label class="layui-form-label" lay-verify>工作内容</label>
+            <div class="layui-input-block">
+                <input name="工作内容" class="layui-input" placeholder="请输入工作内容" lay-verify='required'></input>
+            </div>
+        </div>
+
+        <div class="layui-form-item from_work">
+            <label class="layui-form-label" lay-verify>区域</label>
+            <div class="layui-input-block">
+                <input name="区域" class="layui-input" placeholder="请输入区域" lay-verify='required'></input>
+            </div>
+        </div>
+
+        <div class="layui-form-item from_work">
+            <label class="layui-form-label" lay-verify>代号</label>
+            <div class="layui-input-block">
+                <input name="代号" class="layui-input" placeholder="请输代号" lay-verify='required'></input>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script href="/js/ajax.js"></script>
+<script>
+    var model = {
+        run: function (call, url, param, callback) {
+            call(url, param, function (res) {
+                if (!res.state) {
+                    return layer.msg(res.data, "error");
+                }
+                callback && callback(res);
+            });
+        },
+        add: function (param, callback) {
+            callback({state: true});
+        },
+        update: function (param, callback) {
+            callback({state: true, data: param});
+        },
+
+        delete: function (param, callback) {
+            callback({state: true});
+        },
+        get: function (param, callback) {
+            callback({state: true, data: [{id: 2, ship: "N765"}]});
+        },
+
+    }
+</script>
+<script>
+    var deleteConfirm = function (msg, call) {
+        var index = layer.confirm(msg, {title: "确认", icon: "confirm", btn: ["删除", "不删除"]}, function (r) {
+            r && call();
+            layer.close(index);
+        });
+    }
+    var mustSelect = function (msg, tableId) {
+        var checkStatus = layui.table.checkStatus(tableId);
+        if (!checkStatus || checkStatus.data.length <= 0) {
+            layer.msg(msg);
+            return
+        }
+        return checkStatus;
+    }
+</script>
+<script>
+    function getValue(form) {
+        var items = form.find("[name]");
+        var values = {};
+        items.each(function () {
+            var name = $(this).attr("name");
+            values[name] = $(this).val();
+        });
+        return values;
+    }
+    function resetValue(form) {
+        var items = form.find("[name]");
+        items.each(function () {
+            $(this).val("");
+        });
+    }
+
+    function setValue(value, form) {
+        for (var key in value) {
+            var ele = form.find("[name=" + key + "]");
+            ele.val(value[key]);
+        }
+    }
+
+    function addShip(value, callback) {
+        var element = $("#addShip").clone();
+        element.find(".layui-form").attr("lay-filter", "myform").attr("id", "myform");
+        var select = element.find("select");
+        var validate = function (value) {
+            var errors = [];
+            if (!value.专业) {
+                errors.push("专业必填");
+            }
+            if (!value.工时类型) {
+                errors.push("工时类型必填");
+
+            }
+            if (!value.工作内容) {
+                errors.push("工作内容必填");
+
+            }
+            if (!value.区域) {
+                errors.push("区域必填");
+
+            }
+            if (!value.代号) {
+                errors.push("代号必填");
+            }
+            if (errors.length > 0) {
+                layer.msg(errors.join("</br>"), {timeout: 3000});
+                return false;
+            }
+            return true;
+        }
+        var index = layer.open({
+                type: 1,
+                title: value ? "编辑" : "新增",
+                area: ["500px", "450px"],
+                content: "<div class='form_container'>" + element.prop("innerHTML") + "</div>",
+                btn: ['确定', '取消'],
+                yes: function () {
+                    $("#myform").submit();
+                },
+                success: function () {
+                    layui.form.render();
+                    value && setValue(value, $("#myform"));
+                    layui.form.on("submit(myform)", function (data) {
+                        var values = getValue($(data.elem));
+                        if (!validate(values)) {
+                            return;
+                        }
+                        var values = $.extend(true,value,values);
+                        var call = !value ? model.add : model.update;
+                        call && call(values, function (_res) {
+                            callback(_res);
+                            !_res.state && layer.msg(_res.data, "error");
+                            layer.close(index);
+                        });
+                    });
+                },
+            }
+        )
+    }
+
+    function delBatBlock(oper) {
+        var checkStatus1 = mustSelect("请先选择数据行", "contentInfo");
+        if (!checkStatus1) return;
+        deleteConfirm("删除选择的工作内容配置吗？", function () {
+            model.delete({
+                ids: checkStatus1.data.map(function (cell) {
+                    return cell.id
+                })
+            }, function (res) {
+                !res.state && layer.msg(res.data, {time: 3000});
+                res.state && layer.msg("删除数据成功");
+                res.state && loadData();
+            })
+        });
+    }
+
+    function loadData(query) {
+        var query = $.extend({}, query);
+        model.get(query, function (res) {
+            !res.state && layer.msg(res.data);
+            res.state && layui.table.reload("contentInfo", {data:res.data});
+        })
+    }
+</script>
+<script>
+    layui.use(["form", "table"], startInit);
+    var shipOper = {
+        edit: function (oper) {
+            addShip(oper.data, function (_res) {
+                _res.state && oper.obj.update(_res.data);
+            });
+        },
+        del: function (oper) {
+            delBatBlock();
+        },
+    }
+
+    function startInit() {
+        var table = layui.table;
+        table.render({
+            elem: '#contentInfo',
+            data: [{id: 1, 专业: 2, content: 3}],
+            toolbar: "#contentt",
+            defaultToolbar: ["filter", "exports"],
+            height: "full-5",
+            page: true,
+            cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            , cols: [[
+                {type: 'checkbox', width: 45},
+                {field: '专业', title: '专业', sort: true},
+                {field: "工时类型", title: "工时类型"},
+                {field: "工作内容", title: "工作内容"},
+                {field: "区域", title: "区域"},
+                {field: "代号", title: "代号"},
+                {field: "操作", width: 150, title: "操作", toolbar: "#contenttools"}
+            ]], done: function (res, curr, count) {
+                $("#content").siblings().css({margin: "0"}).find("tr,.layui-table-tool").css({'background-color': 'white'});
+            }
+        });
+        var getOperate = function (event) {
+            var data = event.data; //获得当前行数据
+            var layEvent = event.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = event.tr; //获得当前行 tr 的DOM对象
+            return {
+                data: data,
+                etype: layEvent,
+                rowTr: tr,
+                obj: event,
+            }
+        }
+
+        table.on("toolbar(content)", function (event) {
+            var oper = getOperate(event);
+            switch (oper.etype) {
+                case "addShip":
+                    addShip(null, function (_res) {
+                    });
+                    break;
+                case "delBat":
+                    delBatBlock();
+                    break;
+            }
+        });
+
+        table.on("tool(content)", function (event) {
+            var oper = getOperate(event);
+            var call = shipOper[oper.etype];
+            call && call(oper);
+            !call && layer.msg("不存在的方法,content");
+        });
+        loadData();
+    }
+
+</script>
