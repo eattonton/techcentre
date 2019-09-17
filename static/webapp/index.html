@@ -89,48 +89,56 @@
         color: white;
 
     }
+
+    .required {
+        color: red;
+        position: relative;
+        top: 2px;
+    }
 </style>
 <body>
 <div class="info" style="display: flex;flex-direction: column;">
     <div class="title">
-        <div onclick="window.history.go(-1)" style="position: absolute;font-size:16px;font-weight:bold; line-height:45px;width: 30px"><</div>
+        <div onclick="window.history.go(-1)"
+             style="position: absolute;font-size:16px;font-weight:bold; line-height:45px;width: 30px"><
+        </div>
         <div style="font-weight: bold;font-size: 16px;padding: 15px 10px 5px 10px">技术中心工时录入系统</div>
         <hr color="white" size="xxp">
         <div id="date" style="font-size: 12px;font-weight: 200px;padding: 5px"></div>
     </div>
     <div class="content">
         <div class="onerow">
-            <label>工号:</label>
+            <label>工号<span class="required">*</span>:</label>
             <input id='work' name="工号"/>
         </div>
         <div class="onerow">
-            <label>姓名:</label>
+            <label>姓名<span class="required">*</span>:</label>
             <input id='name' name="姓名"/>
         </div>
 
         <div class="onerow">
-            <label>船号:</label>
+            <label>船号<span class="required">*</span>:</label>
             <input id='ship' name='船号' placeholder="请选择船号"></input>
         </div>
         <div class="onerow">
-            <label class="wrap">分段/总装/区域:</label>
-            <input id='location' name="位置" placeholder="请输入分段/总装/区域"></input>
+            <label class="wrap">分段/总装/区域<span class="required">*</span>:</label>
+            <input id='location' name="位置" placeholder="请输入分段/总装/区域" value="无"></input>
         </div>
         <div class="onerow">
-            <label>工作内容:</label>
+            <label>工作内容<span class="required">*</span>:</label>
             <input id="content" rows="5" name="工作内容" placeholder="请选择工作内容"></input>
         </div>
         <div class="onerow">
-            <label>代号:</label>
+            <label>代号<span class="required">*</span>:</label>
             <input id="code" name="代码" readonly placeholder="根据工作内容自动填充"></input>
         </div>
         <div class="onerow">
-            <label>工时:</label>
+            <label>工时<span class="required">*</span>:</label>
             <input id="hour" name="工时" placeholder="请录入工时" style="width: 75%;padding-right: 2px"/>
             <span style="color:gray;line-height: 34px;width: 10%;text-align: right;padding-right: 10px">小时</span>
         </div>
         <div class="onerow">
-            <label>时间:</label>
+            <label>时间<span class="required">*</span>:</label>
             <input id="datetime" name="时间" placeholder="请选择时间"/>
         </div>
         <div style="margin-top: 15px;width: 100%" class="submitDiv">
@@ -157,99 +165,129 @@
             })
         },
         getShip: function (param, callback) {
-            callback({data: [1, 23, 4]});
-            return;
-            model.run(AJAX.get, "/tc/getShip", param, callback);
+            model.run(AJAX.post, "/dictionary/get", param, callback);
         },
         getCode: function (param, callback) {
-            callback({data: [3, 5, 6]});
-//            model.run(AJAX.get, "/tc/getShipZone", param, callback);
-        },
-        getWork: function (param, callback) {
-            callback({data: [{工作内容: "型线光顺", 代号: "A1"}]});
-//            model.run(AJAX.get, "/tc/getWork", param, callback);
+            model.run(AJAX.get, "/dictionary/get", param, callback);
         },
         add: function (param, callback) {
-            model.run(AJAX.post, "/tc/insert", param, callback);
+            model.run(AJAX.post, "/works/insert", param, callback);
         },
     }
 </script>
 <script>
     var shipConfig = {};
     var currentCode = [];
+    var block = [];
+    var work = {};
+    var workContent = [];
+    function getId(cell) {
+        return cell.id || cell._id;
+    }
+    function getTWorks(val) {
+        if (block.indexOf(val) != -1) {
+            val = "对应分段";
+        }
+        if (!work[val]) {
+            layer.msg("分段/总装/区域数据,请重新输入");
+            setTimeout(function () {
+                mobileSelect3 && mobileSelect3.updateWheel(0, []);
+                mobileSelect3 && $(mobileSelect3.cancelBtn).click();
+                $("#location").focus();
+            }, 0.5);
+            return null;
+        }
+        return work[val];
+    }
     function init() {
         var current = new Date().Format("Y年M月d日");
+        var mobileSelect3;
         $("#datetime").val(current);
         $("#date").text(current);
         function initShip(config) {
-            model.getShip({}, function (res) {
+            model.getShip({filter: {categroy: "ship"}}, function (res) {
                 var mobileSelect1 = new MobileSelect({
                     trigger: '#ship',
                     title: '选择船号',
                     wheels: [
-                        {data: res.data}
-                    ],
-                    transitionEnd: function (indexArr, data) {
-                        //console.log(data);
-                    },
-                    callback: function (indexArr, data) {
-                        mobileSelect1.position = [indexArr];
-                        $("#ship").val(data);
-                        initZone(data);
-                    }
-                });
-            });
-        }
-
-        function initZone(ship) {
-            model.getCode({船号: ship}, function (res) {
-                currentCode = res.data;
-//                var mobileSelect2 = new MobileSelect({
-//                    trigger: '#location',
-//                    title: '选择分度/总组/区域',
-//                    wheels: [
-//                        {data: res.data}
-//                    ],
-//                    transitionEnd: function (indexArr, data) {
-//                        //console.log(data);
-//                    },
-//                    callback: function (indexArr, data) {
-//                        mobileSelect2.position = [indexArr];
-//                        $("#location").val(data);
-//                    }
-//                });
-            });
-        }
-
-        function initWork() {
-            model.getWork({}, function (res) {
-                var mobileSelect3 = new MobileSelect({
-                    trigger: '#content',
-                    title: '选择工作内容',
-                    wheels: [
                         {
                             data: res.data.map(function (cell) {
-                                return cell.工作内容
+                                return cell.ship;
                             })
                         }
                     ],
-                    transitionEnd: function (indexArr, data) {
-                        //console.log(data);
-                    },
                     callback: function (indexArr, data) {
-                        mobileSelect3.position = indexArr;
-                        $("#content").val(data[0]);
-                        var find = res.data.find(function (cell) {
-                            return cell.工作内容 == data[0];
-                        });
-                        $("#code").val(find.代号);
+                        mobileSelect1.position = [indexArr];
+                        $("#ship").val(data);
+                        initZone(data[0]);
                     }
                 });
+            });
+        }
+
+
+        function initZone(ship) {
+            var query = {}
+            model.getCode({filter: query}, function (res) {
+                currentCode = res.data;
+                res.data.forEach(function (cell) {
+                    if (cell.categroy == "block" && cell.ship_name == ship) {
+                        block.push(cell.block);
+                    }
+                    if (cell.categroy == "workcontent") {
+                        if (!work[cell.区域]) {
+                            work[cell.区域] = {};
+                        }
+
+                        var workInfo = work[cell.区域];
+                        if (!workInfo[cell.工作内容]) {
+                            workInfo[cell.工作内容] = cell;
+                        }
+                    }
+                });
+
+                function initWorks() {
+                    var val = $("#location").val();
+                    var content = getTWorks(val);
+                    if (!content)return;
+                    workContent = [];
+                    for (var key in content) {
+                        workContent.push(key);
+                    }
+                    if (!mobileSelect3) {
+                        initWork(workContent);
+                    } else {
+                        mobileSelect3.updateWheel(0, workContent);
+                    }
+                }
+
+                $("#location").blur(initWorks);
+                initWorks();
+            });
+        }
+
+        function initWork(data) {
+            mobileSelect3 = new MobileSelect({
+                trigger: '#content',
+                title: '选择工作内容',
+                wheels: [
+                    {
+                        data: data
+                    }
+                ],
+                callback: function (indexArr, data) {
+                    mobileSelect3.position = indexArr;
+                    $("#content").val(data[0]);
+                    var location = $("#location").val();
+                    var works = getTWorks(location);
+                    var content = data[0];
+                    var cell = works[content];
+                    $("#code").val(cell.代号);
+                }
             });
         }
 
         initShip();
-        initWork()
         //日期选择
         var getDate = function () {
             var date = new Date();
@@ -337,7 +375,7 @@
         var value = $(this).val();
         var obj = $(this);
         obj.val("");
-        obj.css("color","gray");
+        obj.css("color", "gray");
         setTimeout(function () {
             obj.val(value);
         }, 1)
@@ -349,21 +387,23 @@
             var name = $(this).attr("name");
             var val = $(this).val();
             if (!val) {
-                $(this).css("color", "red");
+//                $(this).css("color", "red");
                 hasNotInput = true;
             }
             values[name] = val;
         });
         var errors = [];
-        if (values["分段/总组/区域"] && currentCode.indexOf(values["分段/总组/区域"]) === -1) {
-            $("#location").css({
-                color: "red",
-            })
-            errors.push("输入的分段/总组/区域有误");
-        }
         if (hasNotInput) {
             errors.push("请输入必填数据");
         }
+        var works = getTWorks(values["位置"]);
+        if (!works) {
+            $("#location").focus();
+            errors.push("分段/总体/区域数据有误");
+        }
+//        if (parseInt(values.工时) > 24) {
+//            errors.push("当日工时超过24小时");
+//        }
         if (errors.length > 0) {
             layer.msg(errors.join("</br>"), {timeout: 3000});
             return;

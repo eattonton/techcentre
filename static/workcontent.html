@@ -31,12 +31,44 @@
         position: relative;
         top: 3px;
     }
+
+    .search_container input {
+        width: 150px;
+        display: inline-block;
+        margin: 0px;
+        padding: 0px;
+        text-indent: 5px;
+        height: 31px;
+        position: relative;
+        top: 1px;
+    }
+
+    .search_container {
+        display: inline-block;
+        margin-left: -10px;
+        margin-right: -40px;
+
+    }
 </style>
+
 <script type="text/html" id="contentt">
-    <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="addShip">新增</button>
-        <button class="layui-btn layui-btn-sm" lay-event="delBat">批量删除</button>
+    <div style="display: flex;flex-direction: row;justify-content: space-between">
+        <div class="layui-btn-container" style="display: inline-block">
+            <button class="layui-btn layui-btn-sm" lay-event="addShip">新增</button>
+            <button class="layui-btn layui-btn-sm" lay-event="delBat">批量删除</button>
+            <button class="layui-btn layui-btn-sm" lay-event="importBtn">导入</button>
+        </div>
+
+        <div class="search_container">
+            <input name="专业" class="layui-input" placeholder="专业" autocomplete="off"/>
+            <input name="工时类型" class="layui-input" placeholder="工时类型" autocomplete="off"/>
+            <input name="工作内容" class="layui-input" placeholder="工作内容" autocomplete="off"/>
+            <input name="区域" class="layui-input" placeholder="区域" autocomplete="off"/>
+            <input name="代码" class="layui-input" placeholder="代码" autocomplete="off"/>
+            <button class="layui-btn layui-btn-sm" style="margin-left: 5px" onclick="change()">搜索</button>
+        </div>
     </div>
+
 </script>
 <script type="text/html" id="contenttools">
     <div class="layui-btn-container">
@@ -62,7 +94,10 @@
         <div class="layui-form-item from_time">
             <label class="layui-form-label" lay-verify>工时类型</label>
             <div class="layui-input-block">
-                <input name="工时类型" class="layui-input" placeholder="请输入工时类型" lay-verify='required'></input>
+                <select name="工时类型" class="layui-input layui-select" placeholder="请选择工时类型" autocomplete="off">
+                    <option value="设计">设计</option>
+                    <option value="非设计">非设计</option>
+                </select>
             </div>
         </div>
 
@@ -76,7 +111,10 @@
         <div class="layui-form-item from_work">
             <label class="layui-form-label" lay-verify>区域</label>
             <div class="layui-input-block">
-                <input name="区域" class="layui-input" placeholder="请输入区域" lay-verify='required'></input>
+                <select name="区域" class="layui-input layui-select" placeholder="请选择区域" autocomplete="off">
+                    <option value="无">无</option>
+                    <option value="对应分段">对应分段</option>
+                </select>
             </div>
         </div>
 
@@ -96,23 +134,28 @@
         run: function (call, url, param, callback) {
             call(url, param, function (res) {
                 if (!res.state) {
-                    return layer.msg(res.data, "error");
+                    return layer.msg(res.data);
                 }
                 callback && callback(res);
             });
         },
         add: function (param, callback) {
-            callback({state: true});
+            param.categroy = "workcontent";
+            model.run(AJAX.post, "/dictionary/insert", param, callback);
         },
         update: function (param, callback) {
-            callback({state: true, data: param});
+            param.categroy = "workcontent";
+            model.run(AJAX.post, "/dictionary/update", param, callback);
         },
 
         delete: function (param, callback) {
-            callback({state: true});
+            model.run(AJAX.post, "/dictionary/delete", param, callback);
         },
         get: function (param, callback) {
-            callback({state: true, data: [{id: 2, ship: "N765"}]});
+            model.run(AJAX.post, "/dictionary/get", param, function (res) {
+                res.state && (model.data = res.data)
+                callback(res);
+            });
         },
 
     }
@@ -132,8 +175,32 @@
         }
         return checkStatus;
     }
+
+    function filterTable(tableId, callback) {
+        layui.table.reload(tableId, {data: model.data.filter(callback)});
+    }
+
+    function change() {
+        var values = getValue($(".search_container"));
+        filterTable("contentInfo", function (cell) {
+            for (var key in values) {
+                if (values[key] && !cell[key]) {
+                    return false;
+                }
+                if (values[key] && cell[key].indexOf(values[key]) == -1) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        setValue(values, $(".search_container"));
+        $(".search_container input").change(change);
+    }
 </script>
 <script>
+    function getId(cell) {
+        return cell._id || cell.id;
+    }
     function getValue(form) {
         var items = form.find("[name]");
         var values = {};
@@ -204,12 +271,12 @@
                         if (!validate(values)) {
                             return;
                         }
-                        var values = $.extend(true,value,values);
+                        var values = $.extend(true, value, values);
                         var call = !value ? model.add : model.update;
                         call && call(values, function (_res) {
                             callback(_res);
-                            !_res.state && layer.msg(_res.data, "error");
-                            layer.close(index);
+                            !_res.state && layer.msg(_res.data);
+                            value && layer.close(index);
                         });
                     });
                 },
@@ -220,11 +287,13 @@
     function delBatBlock(oper) {
         var checkStatus1 = mustSelect("请先选择数据行", "contentInfo");
         if (!checkStatus1) return;
-        deleteConfirm("删除选择的工作内容配置吗？", function () {
+        deleteConfirm("删除选择的工作内容配置吗？", function (res) {
             model.delete({
-                ids: checkStatus1.data.map(function (cell) {
-                    return cell.id
-                })
+                _id: {
+                    $in: checkStatus1.data.map(function (cell) {
+                        return getId(cell)
+                    })
+                }
             }, function (res) {
                 !res.state && layer.msg(res.data, {time: 3000});
                 res.state && layer.msg("删除数据成功");
@@ -232,12 +301,16 @@
             })
         });
     }
+    function importExcel(oper) {
+
+    }
 
     function loadData(query) {
         var query = $.extend({}, query);
-        model.get(query, function (res) {
+        query.categroy = "workcontent";
+        model.get({filter: query}, function (res) {
             !res.state && layer.msg(res.data);
-            res.state && layui.table.reload("contentInfo", {data:res.data});
+            res.state && layui.table.reload("contentInfo", {data: res.data});
         })
     }
 </script>
@@ -250,27 +323,33 @@
             });
         },
         del: function (oper) {
-            delBatBlock();
+            deleteConfirm("删除数据行吗", function (r) {
+                model.delete({_id: getId(oper.data)}, function (res) {
+                    res.state && oper.obj.del();
+                    res.state && layer.msg("删除数据成功");
+                    !res.state && layer.msg(res.data, {time: 3000});
+                });
+            })
+
         },
     }
 
     function startInit() {
         var table = layui.table;
-        table.render({
+        var obj = table.render({
             elem: '#contentInfo',
-            data: [{id: 1, 专业: 2, content: 3}],
+            data: [],
             toolbar: "#contentt",
             defaultToolbar: ["filter", "exports"],
             height: "full-5",
-            page: true,
             cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
             , cols: [[
                 {type: 'checkbox', width: 45},
                 {field: '专业', title: '专业', sort: true},
-                {field: "工时类型", title: "工时类型"},
-                {field: "工作内容", title: "工作内容"},
-                {field: "区域", title: "区域"},
-                {field: "代号", title: "代号"},
+                {field: "工时类型", title: "工时类型", sort: true},
+                {field: "工作内容", title: "工作内容", sort: true},
+                {field: "区域", title: "区域", sort: true},
+                {field: "代号", title: "代号", sort: true},
                 {field: "操作", width: 150, title: "操作", toolbar: "#contenttools"}
             ]], done: function (res, curr, count) {
                 $("#content").siblings().css({margin: "0"}).find("tr,.layui-table-tool").css({'background-color': 'white'});
@@ -287,16 +366,19 @@
                 obj: event,
             }
         }
-
         table.on("toolbar(content)", function (event) {
             var oper = getOperate(event);
             switch (oper.etype) {
                 case "addShip":
                     addShip(null, function (_res) {
+                        _res.state && loadData();
                     });
                     break;
                 case "delBat":
                     delBatBlock();
+                    break;
+                case "importBtn":
+                    importExcel();
                     break;
             }
         });
@@ -307,7 +389,10 @@
             call && call(oper);
             !call && layer.msg("不存在的方法,content");
         });
+
+
         loadData();
+        $(".search_container input").change(change);
     }
 
 </script>

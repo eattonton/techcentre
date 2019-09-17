@@ -122,28 +122,27 @@
             });
         },
         add: function (param, callback) {
-            callback({state: true});
+            param.categroy = "ship";
+            model.run(AJAX.post, "/dictionary/insert", param, callback);
         },
         update: function (param, callback) {
-            callback({state: true, data: param});
+            model.run(AJAX.post, "/dictionary/update", param, callback);
         },
         addBlock: function (param, callback) {
-            callback({state: true});
+            param.categroy = "block";
+            model.run(AJAX.post, "/dictionary/insert", param, callback);
         },
         updateBlock: function (param, callback) {
-            callback({state: true, data: param});
+            model.run(AJAX.post, "/dictionary/update", param, callback);
         },
         delete: function (param, callback) {
-            callback({state: true});
+            model.run(AJAX.post, "/dictionary/delete", param, callback);
         },
         getShip: function (param, callback) {
-            callback({state: true, data: [{id: 2, ship: "N765"}]});
-
-//            this.run(AJAX.post, "/dictionary/getship", param, callback);
+            model.run(AJAX.post, "/dictionary/get", param, callback);
         },
         getInfo: function (param, callback) {
-            callback({data: [{block: 1233}]});
-//            this.run(AJAX.post, "dictionary/getinfo", param, callback);
+            model.run(AJAX.post, "/dictionary/get", param, callback);
         }
     }
 </script>
@@ -164,6 +163,9 @@
     }
 </script>
 <script>
+    function getId(cell) {
+        return cell._id || cell.id;
+    }
     function getValue(form) {
         var items = form.find("[name]");
         var values = {};
@@ -212,7 +214,7 @@
 
         var index = layer.open({
                 type: 1,
-                title:value?"编辑":"新增",
+                title: value ? "编辑" : "新增",
                 area: ["400px", "360px"],
                 content: "<div class='form_container'>" + element.prop("innerHTML") + "</div>",
                 btn: ['确定', '取消'],
@@ -235,6 +237,7 @@
                                 return layer.msg("请输入船号", "error");
                             }
                             var call = !value ? model.add : model.update;
+                            values = $.extend(true, value, values);
                             call && call(values, function (_res) {
                                 callback(_res);
                                 !_res.state && layer.msg(_res.data, "error");
@@ -243,7 +246,7 @@
                             });
                         });
                     }
-                    model.getShip({}, function (_res) {
+                    model.getShip({filter: {category: "ship"}}, function (_res) {
                         _res.state && ok(_res);
                     });
 
@@ -252,6 +255,20 @@
         )
     }
 
+    function loadShip(query) {
+        var query = $.extend({}, query);
+        query.categroy = "ship";
+        model.getShip({"filter": query}, function (res) {
+            layui.table.reload("shiptable", {data: res.data});
+        })
+    }
+    function loadBlock(query) {
+        var query = $.extend({}, query);
+        query.categroy = "block";
+        model.getInfo({"filter": query}, function (res) {
+            layui.table.reload("rightTable", {data: res.data});
+        })
+    }
     function addBlock(value, callback) {
         var checkStatus = mustSelect("请先选择船号", "shiptable");
         if (!checkStatus) return;
@@ -260,7 +277,7 @@
         element.find(".layui-form").attr("lay-filter", "myform").attr("id", "myform");
         var index = layer.open({
                 type: 1,
-                title: value?"编辑":"新增",
+                title: value ? "编辑" : "新增",
                 area: ["400px", "360px"],
                 content: "<div class='form_container'>" + element.prop("innerHTML") + "</div>",
                 btn: ['确定', '取消'],
@@ -276,7 +293,9 @@
                             return layer.msg("请输入分段号", "error");
                         }
                         var call = !value ? model.addBlock : model.updateBlock;
-                        values.ship = checkStatus.data[0].id;
+                        values.ship = getId(checkStatus.data[0]);
+                        values.ship_name = checkStatus.data[0].ship;
+                        values = $.extend(true, value, values);
                         call && call(values, function (_res) {
                             callback(_res);
                             !_res.state && layer.msg(_res.data, "error");
@@ -287,10 +306,11 @@
             }
         )
     }
-    function delShip(oper) {
-        model.delete({id: oper.data.id}, function (res) {
+    function delShipOrBlock(oper) {
+        model.delete({_id: getId(oper.data)}, function (res) {
             res.state && oper.obj.del();
             !res.state && layer.msg(res.data, {time: 3000});
+            res.state && layer.msg("删除成功");
         })
     }
     function delBatBlock(oper) {
@@ -301,14 +321,15 @@
         if (!checkStatus) return;
         deleteConfirm("删除选择的分段吗？", function () {
             model.delete({
-                ids: checkStatus.data.map(function (cell) {
-                    return cell.id
-                })
+                _id: {
+                    $in: checkStatus.data.map(function (cell) {
+                        return getId(cell)
+                    })
+                },
             }, function (res) {
                 !res.state && layer.msg(res.data, {time: 3000});
-                model.getInfo({id: checkStatus1.data[0].id}, function (res) {
-                    layui.table.reload("rightTable", {data: res.data});
-                })
+                loadBlock({ship: getId(checkStatus1.data[0])});
+                res.state && layer.msg("删除成功");
             })
         });
 
@@ -324,7 +345,7 @@
         },
         del: function (oper) {
             deleteConfirm("删除船号【" + oper.data.ship + "】吗?", function () {
-                delShip(oper);
+                delShipOrBlock(oper);
             });
         },
     }
@@ -335,14 +356,16 @@
             });
         },
         del: function (oper) {
-
+            deleteConfirm("删除分段【" + oper.data.block + "】吗?", function () {
+                delShipOrBlock(oper);
+            });
         }
     }
     function startInit() {
         var table = layui.table;
         table.render({
             elem: '#shiptable',
-            data: [{id: 1, ship: 2, content: 3}],
+            data: [],
             toolbar: "#shiptablet",
             defaultToolbar: ["filter", "exports"],
             height: "full-5",
@@ -369,9 +392,7 @@
         }
         table.on("radio(shiptable)", function (event) {
             var oper = getOperate(event);
-            model.getInfo({pid: oper.data.id}, function (res) {
-                table.reload("rightTable", {data: res.data});
-            });
+            loadBlock({ship: getId(oper.data)});
         });
 
         table.on("toolbar(shiptable)", function (event) {
@@ -379,9 +400,7 @@
             switch (oper.etype) {
                 case "addShip":
                     addShip(null, function (_res) {
-                        _res.state && model.getShip({}, function (res) {
-                            layui.table.reload("shiptable", {data: res.data})
-                        });
+                        loadShip();
                     });
                     break;
             }
@@ -400,7 +419,7 @@
             toolbar: "#rightTablet",
             data: [],
             page: true,
-            url:"",
+            url: "",
             defaultToolbar: ["filter", "exports"],
             done: function (res, curr, count) {
                 $("#rightTable").siblings().css({margin: "0"}).find("tr,.layui-table-tool").css({'background-color': 'white'});
@@ -420,9 +439,7 @@
             switch (oper.etype) {
                 case "addBlock":
                     addBlock(null, function (_res) {
-                        _res.state && model.getInfo({}, function (res) {
-                            layui.table.reload("rightTable", {data: res.data})
-                        });
+                        loadBlock();
                     });
                     break;
                 case "delBat":
@@ -436,6 +453,7 @@
             call && call(oper);
             !call && layer.msg("不存在的方法,rightTable");
         });
+        loadShip();
     }
 
 </script>

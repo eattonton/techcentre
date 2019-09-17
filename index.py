@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, sys
-#sys.path.append("WeldStaffPy")
+# sys.path.append("WeldStaffPy")
 import json
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf.urls import url
@@ -38,18 +38,22 @@ settings.configure(
 from django.shortcuts import render, render_to_response
 from django.views.static import serve
 
-#user defined
+# user defined
 import tcpy.main
+from techwebapp.src import _parttern
 
 urlpatterns = (
     url(r'^$', serve, {'document_root': 'static', 'path': 'index.html', 'show_indexes': True}),
     url(r'^templates/(?P<path>.*)', serve, {'document_root': 'templates', 'show_indexes': True}),
     url(r'^tc/(.*)/(.*)', tcpy.main.html),
+    url(r'^dictionary/(.*)', _parttern.dictionary),
+    url(r'^works/(.*)', _parttern.works),
     url(r'^(?P<path>.*)$', serve, {'document_root': 'static', 'show_indexes': True}),
 )
 
-#application = get_wsgi_application()
+# application = get_wsgi_application()
 
 if __name__ == '__main__':
     from django.core.management import execute_from_command_line
+
     execute_from_command_line(sys.argv)
